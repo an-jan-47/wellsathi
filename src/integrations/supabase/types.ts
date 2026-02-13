@@ -282,6 +282,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_clinic_role: { Args: { _user_id: string }; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
