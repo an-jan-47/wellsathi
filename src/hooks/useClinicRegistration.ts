@@ -70,10 +70,9 @@ export function useClinicRegistration() {
       // Store user ID for file uploads
       setUserId(authData.user.id);
 
-      // Add clinic role
+      // Add clinic role using secure SECURITY DEFINER function
       const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({ user_id: authData.user.id, role: 'clinic' });
+        .rpc('assign_clinic_role', { _user_id: authData.user.id });
 
       if (roleError) {
         console.error('Error adding clinic role:', roleError);
@@ -220,6 +219,12 @@ export function useClinicRegistration() {
       }
 
       setIsSuccess(true);
+
+      // Refresh auth store roles so dashboard access check passes
+      const { useAuthStore } = await import('@/stores/authStore');
+      if (userId) {
+        await useAuthStore.getState().fetchUserData(userId);
+      }
       
       toast({
         title: 'Registration Complete!',
