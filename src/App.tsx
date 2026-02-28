@@ -8,6 +8,8 @@ import { useAuthStore } from '@/stores/authStore';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { Loader2 } from 'lucide-react';
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react"
 
 // Eagerly loaded pages (always needed)
 import Index from "./pages/Index";
@@ -53,6 +55,8 @@ function AppContent() {
 
   return (
     <BrowserRouter>
+      <Analytics />
+      <SpeedInsights />
       <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Public routes */}
