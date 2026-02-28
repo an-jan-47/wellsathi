@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { Loader2 } from 'lucide-react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 // Eagerly loaded pages (always needed)
 import Index from "./pages/Index";
@@ -108,6 +109,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <AppContent />
+        <SpeedInsights />
       </ErrorBoundary>
     </TooltipProvider>
   </QueryClientProvider>
