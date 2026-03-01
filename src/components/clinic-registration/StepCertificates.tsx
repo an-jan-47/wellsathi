@@ -42,8 +42,8 @@ export function StepCertificates({ data, userId, onNext, onBack }: StepCertifica
 
   const handleFilesSelected = useCallback(async (files: File[]) => {
     const results = await uploadMultiple(files, userId);
-    const newPaths = results.map(r => r.path);
-    const updated = [...uploadedCerts, ...newPaths];
+    const newUrls = results.map(r => r.url);
+    const updated = [...uploadedCerts, ...newUrls];
     setUploadedCerts(updated);
     setValue('certificates', updated, { shouldValidate: true });
   }, [uploadMultiple, userId, uploadedCerts, setValue]);

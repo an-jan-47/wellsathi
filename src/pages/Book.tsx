@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
@@ -6,13 +6,20 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useAuthStore } from '@/stores/authStore';
-import { useClinic } from '@/hooks/queries/useClinics';
+import { useClinicProfile } from '@/hooks/queries/useClinics';
 import { useAllSlots } from '@/hooks/queries/useSlots';
 import { useBookAppointment } from '@/hooks/queries/useAppointments';
 import { toast } from 'sonner';
-import { format, parseISO, addDays } from 'date-fns';
-import { ArrowLeft, Calendar, Clock, User, Phone, MapPin, Loader2, CheckCircle2 } from 'lucide-react';
+import { format, parseISO, addDays, isToday as isTodayFn } from 'date-fns';
+import { ArrowLeft, Calendar, Clock, User, Phone, MapPin, Loader2, IndianRupee, Stethoscope, CreditCard, Building2 } from 'lucide-react';
 import { z } from 'zod';
 
 const bookingSchema = z.object({
@@ -27,14 +34,25 @@ export default function Book() {
   const navigate = useNavigate();
   const { user, profile } = useAuthStore();
 
-  const { data: clinic, isLoading } = useClinic(clinicId);
+  const { data: clinicData, isLoading } = useClinicProfile(clinicId);
+  const clinic = clinicData?.clinic;
+  const services = clinicData?.services ?? [];
+
+  // Sort services alphabetically
+  const sortedServices = useMemo(
+    () => [...services].sort((a, b) => (a.service_name ?? '').localeCompare(b.service_name ?? '')),
+    [services]
+  );
+
   const [selectedDate, setSelectedDate] = useState(searchParams.get('date') || format(new Date(), 'yyyy-MM-dd'));
   const { data: slots = [], refetch: refetchSlots } = useAllSlots(clinicId, selectedDate);
   const bookMutation = useBookAppointment();
 
-  const [isBooked, setIsBooked] = useState(false);
   const [selectedSlotId, setSelectedSlotId] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState(searchParams.get('time') || '');
+  const [selectedServiceId, setSelectedServiceId] = useState<string>('');
+
+  const selectedService = sortedServices.find(s => s.id === selectedServiceId);
 
   const [formData, setFormData] = useState({
     patientName: profile?.name || '',
@@ -58,6 +76,16 @@ export default function Book() {
     const date = addDays(new Date(), i);
     return { value: format(date, 'yyyy-MM-dd'), label: format(date, 'EEE, MMM d'), isToday: i === 0 };
   });
+
+  // Filter out past slots for same-day bookings
+  const filteredSlots = useMemo(() => {
+    const isToday = isTodayFn(parseISO(selectedDate));
+    if (!isToday) return slots;
+
+    const now = new Date();
+    const currentTimeStr = format(now, 'HH:mm:ss');
+    return slots.filter(slot => slot.start_time > currentTimeStr);
+  }, [slots, selectedDate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -84,8 +112,9 @@ export default function Book() {
         notes: validated.notes || null,
       }, {
         onSuccess: () => {
-          setIsBooked(true);
           toast.success('Appointment booked successfully!');
+          // Redirect to home, replacing history so user can't navigate back
+          navigate('/', { replace: true });
         },
         onError: (error) => {
           if (error.message.includes('no longer available')) {
@@ -120,36 +149,8 @@ export default function Book() {
     );
   }
 
-  if (isBooked) {
-    return (
-      <Layout>
-        <div className="container py-20">
-          <Card variant="elevated" className="max-w-lg mx-auto text-center animate-scale-in">
-            <CardContent className="p-8">
-              <div className="w-16 h-16 rounded-full bg-success/20 flex items-center justify-center mx-auto mb-6">
-                <CheckCircle2 className="h-8 w-8 text-success" />
-              </div>
-              <h2 className="text-2xl font-bold text-foreground mb-2">Booking Confirmed!</h2>
-              <p className="text-muted-foreground mb-6">Your appointment has been booked. The clinic will confirm shortly.</p>
-              <div className="bg-muted/50 rounded-lg p-4 mb-6 text-left space-y-2">
-                <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" /><span className="font-medium">{clinic.name}</span></div>
-                <div className="flex items-center gap-2"><Calendar className="h-4 w-4 text-primary" /><span>{format(parseISO(selectedDate), 'EEEE, MMMM d, yyyy')}</span></div>
-                <div className="flex items-center gap-2"><Clock className="h-4 w-4 text-primary" /><span>{selectedTime.slice(0, 5)}</span></div>
-              </div>
-              <div className="flex gap-3">
-                <Button variant="outline" asChild className="flex-1"><Link to="/search">Find More Clinics</Link></Button>
-                {user ? (
-                  <Button asChild className="flex-1"><Link to="/dashboard/user">My Appointments</Link></Button>
-                ) : (
-                  <Button asChild className="flex-1"><Link to="/">Go Home</Link></Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </Layout>
-    );
-  }
+  // Dynamic price: use service fee if selected, otherwise clinic default
+  const displayFee = selectedService?.fee ?? clinic.fees;
 
   return (
     <Layout>
@@ -173,6 +174,34 @@ export default function Book() {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Service Selection */}
+                  {sortedServices.length > 0 && (
+                    <div>
+                      <label className="text-sm font-medium text-foreground mb-2 block">Select Service</label>
+                      <Select value={selectedServiceId} onValueChange={setSelectedServiceId}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Choose a service (optional)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {sortedServices.map((service) => (
+                            <SelectItem key={service.id} value={service.id}>
+                              <div className="flex items-center justify-between w-full gap-4">
+                                <span>{service.service_name}</span>
+                                <span className="text-muted-foreground text-xs">₹{service.fee}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {selectedService && (
+                        <div className="mt-2 flex items-center gap-3 text-sm text-muted-foreground bg-accent/50 rounded-lg px-3 py-2">
+                          <Stethoscope className="h-4 w-4 text-primary flex-shrink-0" />
+                          <span><strong>{selectedService.service_name}</strong> — ₹{selectedService.fee}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {/* Date Selection */}
                   <div>
                     <label className="text-sm font-medium text-foreground mb-2 block">Select Date</label>
@@ -192,9 +221,9 @@ export default function Book() {
                   {/* Time Slots */}
                   <div>
                     <label className="text-sm font-medium text-foreground mb-2 block">Select Time</label>
-                    {slots.length > 0 ? (
+                    {filteredSlots.length > 0 ? (
                       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                        {slots.map((slot) => (
+                        {filteredSlots.map((slot) => (
                           <button key={slot.id} type="button"
                             disabled={!slot.is_available}
                             onClick={() => { if (slot.is_available) { setSelectedTime(slot.start_time); setSelectedSlotId(slot.id); } }}
@@ -263,6 +292,12 @@ export default function Book() {
                   </div>
                 </div>
                 <div className="border-t border-border pt-4 space-y-3">
+                  {selectedService && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Service</span>
+                      <span className="font-medium text-sm">{selectedService.service_name}</span>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Date</span>
                     <span className="font-medium">{format(parseISO(selectedDate), 'MMM d, yyyy')}</span>
@@ -273,10 +308,28 @@ export default function Book() {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Consultation Fee</span>
-                    <span className="font-bold text-primary">₹{clinic.fees}</span>
+                    <span className="font-bold text-primary">₹{displayFee}</span>
                   </div>
                 </div>
-                <Badge variant="pending" className="w-full justify-center py-2">Payment at Clinic</Badge>
+
+                {/* Payment Method Card */}
+                <div className="border-t border-border pt-4">
+                  <label className="text-sm font-medium text-foreground mb-3 block">Payment Method</label>
+                  <div className="relative rounded-xl border-2 border-primary bg-primary/5 p-4 cursor-pointer transition-all">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <Building2 className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-foreground text-sm">Pay at Clinic</p>
+                        <p className="text-xs text-muted-foreground">Pay directly when you visit</p>
+                      </div>
+                      <div className="w-5 h-5 rounded-full border-2 border-primary flex items-center justify-center">
+                        <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>

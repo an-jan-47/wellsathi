@@ -65,7 +65,7 @@ export function FileUploadZone({
   }, [maxFiles, uploadedUrls.length, onFilesSelected]);
 
   const isImage = (url: string) => {
-    return /\.(jpg|jpeg|png|gif|webp)$/i.test(url) || url.includes('clinic-images');
+    return /\.(jpg|jpeg|png|gif|webp)$/i.test(url) || url.includes('clinic-images') || url.includes('/storage/');
   };
 
   const canUploadMore = uploadedUrls.length < maxFiles;

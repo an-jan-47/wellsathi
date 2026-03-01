@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -23,13 +23,15 @@ import type { AppointmentWithClinic } from '@/services/appointmentService';
 
 export default function UserDashboard() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, profile, isLoading: authLoading, isInitialized } = useAuthStore();
-  const [activeTab, setActiveTab] = useState<'appointments' | 'profile'>('appointments');
+  const initialTab = searchParams.get('tab') === 'profile' ? 'profile' : 'appointments';
+  const [activeTab, setActiveTab] = useState<'appointments' | 'profile'>(initialTab);
 
   // Profile editing
   const [profileForm, setProfileForm] = useState({ name: '', phone: '' });
 
-  const { data: appointments = [], isLoading } = useUserAppointments(user?.id);
+  const { data: appointments = [], isLoading, refetch: refetchAppointments } = useUserAppointments(user?.id);
   const cancelMutation = useCancelAppointment();
   const updateProfileMutation = useUpdateProfile();
 
@@ -66,8 +68,8 @@ export default function UserDashboard() {
     <Layout>
       <div className="gradient-hero py-8">
         <div className="container">
-          <h1 className="text-3xl font-bold text-foreground">Welcome, {profile?.name || 'User'}</h1>
-          <p className="text-muted-foreground mt-2">Manage your appointments and profile</p>
+          <h1 className="text-3xl font-bold text-foreground">My Appointments</h1>
+          <p className="text-muted-foreground mt-2">Welcome back, {profile?.name || 'User'}</p>
         </div>
       </div>
 
@@ -123,7 +125,7 @@ export default function UserDashboard() {
                     <h2 className="text-xl font-semibold text-foreground mb-4">Past ({pastAppointments.length})</h2>
                     <div className="grid gap-4">
                       {pastAppointments.slice(0, 10).map((apt) => (
-                        <AppointmentCard key={apt.id} appointment={apt} isPast onReviewDone={fetchAppointments} />
+                        <AppointmentCard key={apt.id} appointment={apt} isPast onReviewDone={refetchAppointments} />
                       ))}
                     </div>
                   </section>

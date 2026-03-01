@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/authStore';
-import { Heart, Menu, X, LogOut, User, Building2, LayoutDashboard } from 'lucide-react';
+import { Heart, Menu, X, LogOut, User, Building2, CalendarCheck, UserCircle } from 'lucide-react';
 import { useState } from 'react';
 import {
   DropdownMenu,
@@ -52,19 +52,35 @@ export function Header() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem asChild>
-                  <Link to={getDashboardLink()} className="flex items-center gap-2">
-                    <LayoutDashboard className="h-4 w-4" />
-                    Dashboard
-                  </Link>
-                </DropdownMenuItem>
-                {hasRole('clinic') && (
+                {hasRole('admin') ? (
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin" className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4" />
+                      Admin Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                ) : hasRole('clinic') ? (
                   <DropdownMenuItem asChild>
                     <Link to="/dashboard/clinic" className="flex items-center gap-2">
                       <Building2 className="h-4 w-4" />
                       Clinic Dashboard
                     </Link>
                   </DropdownMenuItem>
+                ) : (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link to="/dashboard/user" className="flex items-center gap-2">
+                        <CalendarCheck className="h-4 w-4" />
+                        My Appointments
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/dashboard/user?tab=profile" className="flex items-center gap-2">
+                        <UserCircle className="h-4 w-4" />
+                        My Profile
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
                 )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={signOut} className="flex items-center gap-2 text-destructive">
@@ -110,14 +126,44 @@ export function Header() {
             
             {user ? (
               <>
-                <Link
-                  to={getDashboardLink()}
-                  className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors flex items-center gap-2"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <LayoutDashboard className="h-4 w-4" />
-                  Dashboard
-                </Link>
+                {hasRole('admin') ? (
+                  <Link
+                    to="/admin"
+                    className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors flex items-center gap-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Building2 className="h-4 w-4" />
+                    Admin Dashboard
+                  </Link>
+                ) : hasRole('clinic') ? (
+                  <Link
+                    to="/dashboard/clinic"
+                    className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors flex items-center gap-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Building2 className="h-4 w-4" />
+                    Clinic Dashboard
+                  </Link>
+                ) : (
+                  <>
+                    <Link
+                      to="/dashboard/user"
+                      className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors flex items-center gap-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <CalendarCheck className="h-4 w-4" />
+                      My Appointments
+                    </Link>
+                    <Link
+                      to="/dashboard/user?tab=profile"
+                      className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors flex items-center gap-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <UserCircle className="h-4 w-4" />
+                      My Profile
+                    </Link>
+                  </>
+                )}
                 <button
                   onClick={() => {
                     signOut();

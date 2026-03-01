@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Building2, MapPin, FileText } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, lazy, Suspense } from 'react';
 import { clinicDetailsSchema, type ClinicDetailsData } from '@/types/clinic-registration';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +10,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { FileUploadZone } from './FileUploadZone';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { cn } from '@/lib/utils';
+
+// Lazy load map to avoid loading leaflet CSS/JS until needed
+const LeafletMapPicker = lazy(() =>
+  import('./LeafletMapPicker').then(m => ({ default: m.LeafletMapPicker }))
+);
 
 interface StepClinicDetailsProps {
   data: Partial<ClinicDetailsData>;
@@ -57,6 +62,15 @@ export function StepClinicDetails({ data, userId, onNext, onBack }: StepClinicDe
     setValue('clinicImages', updated);
   }, [uploadedImages, setValue]);
 
+  const handleLocationSelect = useCallback((location: { lat: number; lng: number; address: string; city: string }) => {
+    if (location.city) {
+      setValue('city', location.city);
+    }
+    if (location.address) {
+      setValue('address', location.address);
+    }
+  }, [setValue]);
+
   const onSubmit = (formData: ClinicDetailsData) => {
     onNext({ ...formData, clinicImages: uploadedImages });
   };
@@ -78,7 +92,7 @@ export function StepClinicDetails({ data, userId, onNext, onBack }: StepClinicDe
             <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               id="clinicName"
-              placeholder="City Health Clinic"
+              placeholder="Enter clinic name"
               className={cn('pl-10', errors.clinicName && 'border-destructive')}
               {...register('clinicName')}
             />
@@ -88,6 +102,14 @@ export function StepClinicDetails({ data, userId, onNext, onBack }: StepClinicDe
           )}
         </div>
 
+        {/* Map Picker */}
+        <div className="space-y-2">
+          <Label>Select Location on Map</Label>
+          <Suspense fallback={<div className="h-[300px] bg-muted rounded-xl flex items-center justify-center text-sm text-muted-foreground">Loading map...</div>}>
+            <LeafletMapPicker onLocationSelect={handleLocationSelect} />
+          </Suspense>
+        </div>
+
         {/* City */}
         <div className="space-y-2">
           <Label htmlFor="city">City</Label>
@@ -95,7 +117,7 @@ export function StepClinicDetails({ data, userId, onNext, onBack }: StepClinicDe
             <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               id="city"
-              placeholder="Mumbai"
+              placeholder="Enter city"
               className={cn('pl-10', errors.city && 'border-destructive')}
               {...register('city')}
             />
@@ -112,7 +134,7 @@ export function StepClinicDetails({ data, userId, onNext, onBack }: StepClinicDe
             <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Textarea
               id="address"
-              placeholder="123 Main Street, Near City Hospital..."
+              placeholder="Enter full address"
               className={cn('pl-10 min-h-[80px]', errors.address && 'border-destructive')}
               {...register('address')}
             />

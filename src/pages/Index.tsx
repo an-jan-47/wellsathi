@@ -26,7 +26,7 @@ const Index = () => {
     <Layout>
       <HeroSection />
       <FeaturesSection />
-      <CTASection />
+      {!user && <CTASection />}
     </Layout>
   );
 };

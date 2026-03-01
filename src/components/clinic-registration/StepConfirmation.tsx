@@ -50,8 +50,11 @@ export function StepConfirmation({
         <h2 className="text-2xl font-bold text-foreground mb-2">
           Registration Submitted!
         </h2>
-        <p className="text-muted-foreground mb-6">
-          Your clinic registration is pending admin approval. We'll notify you once approved.
+        <p className="text-muted-foreground mb-2">
+          Your clinic has been registered and is pending verification.
+        </p>
+        <p className="text-sm text-primary font-medium mb-6">
+          Your clinic will be live once verified by our team — usually within 2 hours.
         </p>
         <p className="text-sm text-muted-foreground">
           Redirecting to dashboard in <span className="font-semibold text-primary">{countdown}</span> seconds...
@@ -76,29 +79,7 @@ export function StepConfirmation({
       </div>
 
       <div className="space-y-4">
-        {/* Account Info */}
-        <Card className="bg-muted/30">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <User className="h-5 w-5 text-primary" />
-              <h3 className="font-semibold">Account Information</h3>
-            </div>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <div>
-                <span className="text-muted-foreground">Name:</span>
-                <span className="ml-2 font-medium">{data.ownerName}</span>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Email:</span>
-                <span className="ml-2 font-medium">{data.email}</span>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Phone:</span>
-                <span className="ml-2 font-medium">{data.phone}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+
 
         {/* Clinic Info */}
         <Card className="bg-muted/30">
