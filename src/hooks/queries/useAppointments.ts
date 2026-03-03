@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getUserAppointments, getClinicAppointments, getClinicUpcomingAppointments,
-  cancelAppointment, bookAppointment,
+  cancelAppointment, bookAppointment, updateAppointmentStatus,
 } from '@/services/appointmentService';
 import { toast } from 'sonner';
 
@@ -38,7 +38,7 @@ export function useCancelAppointment() {
   return useMutation({
     mutationFn: cancelAppointment,
     onSuccess: () => {
-      toast.success('Appointment cancelled');
+      toast.success('Appointment cancelled — slot is now available');
       queryClient.invalidateQueries({ queryKey: ['appointments'] });
       queryClient.invalidateQueries({ queryKey: ['slots'] });
     },

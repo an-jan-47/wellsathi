@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useAuthStore } from '@/stores/authStore';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
+import { ScrollToTop } from '@/components/common/ScrollToTop';
 import { Loader2 } from 'lucide-react';
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react"
@@ -55,6 +56,7 @@ function AppContent() {
 
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Analytics />
       <SpeedInsights />
       <Suspense fallback={<PageLoader />}>

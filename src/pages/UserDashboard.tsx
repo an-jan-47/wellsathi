@@ -181,7 +181,7 @@ function AppointmentCard({ appointment, isPast = false, onCancel, onReviewDone }
 }) {
   const [reviewOpen, setReviewOpen] = useState(false);
   const statusVariant = { pending: 'pending', confirmed: 'confirmed', cancelled: 'cancelled' } as const;
-  const canCancel = !isPast && appointment.status === 'pending' && onCancel;
+  const canCancel = !isPast && (appointment.status === 'pending' || appointment.status === 'confirmed') && onCancel;
   const canReview = isPast && appointment.status === 'confirmed';
 
   return (

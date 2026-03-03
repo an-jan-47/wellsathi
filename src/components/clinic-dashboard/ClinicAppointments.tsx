@@ -2,9 +2,14 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
+import { updateAppointmentStatus } from '@/services/appointmentService';
 import { toast } from 'sonner';
-import { User, Phone, Clock, CheckCircle2, XCircle, FileText } from 'lucide-react';
+import { User, Phone, Clock, CheckCircle2, XCircle, FileText, Loader2 } from 'lucide-react';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import type { Appointment } from '@/types';
 
 interface Props {
@@ -15,15 +20,15 @@ interface Props {
 export function ClinicAppointments({ appointments, onUpdate }: Props) {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  const updateStatus = async (id: string, status: 'confirmed' | 'cancelled') => {
+  const handleStatusChange = async (id: string, status: 'confirmed' | 'cancelled') => {
     setUpdatingId(id);
     try {
-      const { error } = await supabase
-        .from('appointments')
-        .update({ status })
-        .eq('id', id);
-      if (error) throw error;
-      toast.success(`Appointment ${status}`);
+      await updateAppointmentStatus(id, status);
+      toast.success(
+        status === 'confirmed'
+          ? 'Appointment confirmed'
+          : 'Appointment rejected — slot is now available'
+      );
       onUpdate();
     } catch {
       toast.error('Failed to update appointment');
@@ -89,32 +94,91 @@ export function ClinicAppointments({ appointments, onUpdate }: Props) {
                       apt.status === 'cancelled' ? 'cancelled' : 'pending'
                     }
                   >
-                    {apt.status}
+                    {apt.status.charAt(0).toUpperCase() + apt.status.slice(1)}
                   </Badge>
 
+                  {/* Pending → Accept or Reject */}
                   {apt.status === 'pending' && (
                     <>
                       <Button
                         size="sm"
                         variant="outline"
                         className="text-success border-success/30 hover:bg-success/10"
-                        onClick={() => updateStatus(apt.id, 'confirmed')}
+                        onClick={() => handleStatusChange(apt.id, 'confirmed')}
                         disabled={updatingId === apt.id}
                       >
-                        <CheckCircle2 className="h-4 w-4 mr-1" />
-                        Confirm
+                        {updatingId === apt.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                        ) : (
+                          <CheckCircle2 className="h-4 w-4 mr-1" />
+                        )}
+                        Accept
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-destructive border-destructive/30 hover:bg-destructive/10"
-                        onClick={() => updateStatus(apt.id, 'cancelled')}
-                        disabled={updatingId === apt.id}
-                      >
-                        <XCircle className="h-4 w-4 mr-1" />
-                        Cancel
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-destructive border-destructive/30 hover:bg-destructive/10"
+                            disabled={updatingId === apt.id}
+                          >
+                            <XCircle className="h-4 w-4 mr-1" />
+                            Decline
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Decline this appointment?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will reject the appointment and make the time slot available for other patients.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Keep</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleStatusChange(apt.id, 'cancelled')}
+                              className="bg-destructive text-destructive-foreground"
+                            >
+                              Yes, Decline
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </>
+                  )}
+
+                  {/* Confirmed → Cancel option */}
+                  {apt.status === 'confirmed' && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-destructive border-destructive/30 hover:bg-destructive/10"
+                          disabled={updatingId === apt.id}
+                        >
+                          <XCircle className="h-4 w-4 mr-1" />
+                          Cancel
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Cancel confirmed appointment?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            The patient will be notified and the slot will become available again.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Keep</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleStatusChange(apt.id, 'cancelled')}
+                            className="bg-destructive text-destructive-foreground"
+                          >
+                            Yes, Cancel
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   )}
                 </div>
               </div>

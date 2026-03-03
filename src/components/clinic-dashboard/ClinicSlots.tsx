@@ -5,10 +5,16 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Plus, Trash2, Clock, Loader2, Copy, Coffee } from 'lucide-react';
+import { Plus, Trash2, Clock, Loader2, Copy, Coffee, Check, CalendarPlus } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { format, addDays } from 'date-fns';
 import type { TimeSlot } from '@/types';
 
@@ -20,10 +26,11 @@ interface Props {
 }
 
 export function ClinicSlots({ clinicId, slots, selectedDate, onUpdate }: Props) {
+  const queryClient = useQueryClient();
   const [isCreating, setIsCreating] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [copyDialogOpen, setCopyDialogOpen] = useState(false);
-  const [bulkMode, setBulkMode] = useState(false);
+  const [bulkMode, setBulkMode] = useState(true); // default to bulk
   const [form, setForm] = useState({ startTime: '09:00', endTime: '09:30' });
   const [bulkForm, setBulkForm] = useState({
     startTime: '09:00',
@@ -32,8 +39,36 @@ export function ClinicSlots({ clinicId, slots, selectedDate, onUpdate }: Props) 
     breakStart: '',
     breakEnd: '',
   });
+
+  // Also-create-for-dates: integrated into the Add Slots dialog
+  const [alsoCreateForDates, setAlsoCreateForDates] = useState<string[]>([]);
+
+  // Standalone copy dialog dates
   const [copyDates, setCopyDates] = useState<string[]>([]);
 
+  // Generate next 7 dates starting from today, excluding the currently selected date
+  const futureDateOptions = Array.from({ length: 7 }, (_, i) => {
+    const date = addDays(new Date(), i);
+    return { value: format(date, 'yyyy-MM-dd'), label: i === 0 ? 'Today' : format(date, 'EEE, MMM d') };
+  }).filter(d => d.value !== selectedDate);
+
+  const toggleDate = (dateValue: string, list: string[], setter: (v: string[]) => void) => {
+    setter(
+      list.includes(dateValue)
+        ? list.filter(d => d !== dateValue)
+        : [...list, dateValue]
+    );
+  };
+
+  const selectAllDates = (list: string[], setter: (v: string[]) => void) => {
+    if (list.length === futureDateOptions.length) {
+      setter([]);
+    } else {
+      setter(futureDateOptions.map(d => d.value));
+    }
+  };
+
+  /* ── Create single slot ── */
   const createSlot = async () => {
     if (!form.startTime || !form.endTime) {
       toast.error('Please fill all fields');
@@ -54,16 +89,24 @@ export function ClinicSlots({ clinicId, slots, selectedDate, onUpdate }: Props) 
         return;
       }
 
-      const { error } = await supabase.from('time_slots').insert({
+      // Create for selected date + any extra dates
+      const datesToCreate = [selectedDate, ...alsoCreateForDates];
+      const slotsToInsert = datesToCreate.map(date => ({
         clinic_id: clinicId,
-        date: selectedDate,
+        date,
         start_time: form.startTime,
         end_time: form.endTime,
         is_available: true,
-      });
+      }));
+
+      const { error } = await supabase.from('time_slots').insert(slotsToInsert);
       if (error) throw error;
-      toast.success('Slot created');
+
+      const extra = alsoCreateForDates.length;
+      toast.success(extra > 0 ? `Slot created for ${datesToCreate.length} date(s)` : 'Slot created');
       setDialogOpen(false);
+      setAlsoCreateForDates([]);
+      queryClient.invalidateQueries({ queryKey: ['slots'] });
       onUpdate();
     } catch {
       toast.error('Failed to create slot');
@@ -72,19 +115,20 @@ export function ClinicSlots({ clinicId, slots, selectedDate, onUpdate }: Props) 
     }
   };
 
+  /* ── Bulk generate slots ── */
   const createBulkSlots = async () => {
     if (bulkForm.startTime >= bulkForm.endTime) {
       toast.error('End time must be after start time');
       return;
     }
-    // Validate break times if provided
     if (bulkForm.breakStart && bulkForm.breakEnd && bulkForm.breakStart >= bulkForm.breakEnd) {
       toast.error('Break end time must be after break start time');
       return;
     }
     setIsCreating(true);
     try {
-      const slotsToCreate: { clinic_id: string; date: string; start_time: string; end_time: string; is_available: boolean }[] = [];
+      // Generate slot templates (times only)
+      const slotTemplates: { start: string; end: string }[] = [];
       let current = bulkForm.startTime;
 
       while (current < bulkForm.endTime) {
@@ -96,7 +140,6 @@ export function ClinicSlots({ clinicId, slots, selectedDate, onUpdate }: Props) 
 
         if (end > bulkForm.endTime) break;
 
-        // Skip slots during break time
         const isInBreak = bulkForm.breakStart && bulkForm.breakEnd &&
           ((current >= bulkForm.breakStart && current < bulkForm.breakEnd) ||
            (end > bulkForm.breakStart && end <= bulkForm.breakEnd));
@@ -107,27 +150,41 @@ export function ClinicSlots({ clinicId, slots, selectedDate, onUpdate }: Props) 
             (end > s.start_time && end <= s.end_time)
           );
           if (!overlap) {
-            slotsToCreate.push({
-              clinic_id: clinicId,
-              date: selectedDate,
-              start_time: current,
-              end_time: end,
-              is_available: true,
-            });
+            slotTemplates.push({ start: current, end });
           }
         }
         current = end;
       }
 
-      if (slotsToCreate.length === 0) {
+      if (slotTemplates.length === 0) {
         toast.error('No valid slots to create (all overlap or fall in break time)');
         return;
       }
 
+      // Create for selected date + any extra dates
+      const datesToCreate = [selectedDate, ...alsoCreateForDates];
+      const slotsToCreate = datesToCreate.flatMap(date =>
+        slotTemplates.map(t => ({
+          clinic_id: clinicId,
+          date,
+          start_time: t.start,
+          end_time: t.end,
+          is_available: true,
+        }))
+      );
+
       const { error } = await supabase.from('time_slots').insert(slotsToCreate);
       if (error) throw error;
-      toast.success(`${slotsToCreate.length} slots created`);
+
+      const dateCount = datesToCreate.length;
+      toast.success(
+        dateCount > 1
+          ? `${slotTemplates.length} slots created for ${dateCount} dates`
+          : `${slotTemplates.length} slots created`
+      );
       setDialogOpen(false);
+      setAlsoCreateForDates([]);
+      queryClient.invalidateQueries({ queryKey: ['slots'] });
       onUpdate();
     } catch {
       toast.error('Failed to create slots');
@@ -136,9 +193,10 @@ export function ClinicSlots({ clinicId, slots, selectedDate, onUpdate }: Props) 
     }
   };
 
+  /* ── Copy existing slots to other dates ── */
   const copySlotsToDate = async () => {
     if (copyDates.length === 0) {
-      toast.error('Please select at least one date');
+      toast.error('Select at least one date');
       return;
     }
     if (slots.length === 0) {
@@ -162,6 +220,7 @@ export function ClinicSlots({ clinicId, slots, selectedDate, onUpdate }: Props) 
       toast.success(`Copied ${slots.length} slots to ${copyDates.length} date(s)`);
       setCopyDialogOpen(false);
       setCopyDates([]);
+      queryClient.invalidateQueries({ queryKey: ['slots'] });
       onUpdate();
     } catch {
       toast.error('Failed to copy slots. Some dates may already have slots.');
@@ -170,33 +229,90 @@ export function ClinicSlots({ clinicId, slots, selectedDate, onUpdate }: Props) 
     }
   };
 
+  /* ── Delete slot ── */
   const deleteSlot = async (slotId: string) => {
     try {
       const { error } = await supabase.from('time_slots').delete().eq('id', slotId);
       if (error) throw error;
       toast.success('Slot deleted');
+      queryClient.invalidateQueries({ queryKey: ['slots'] });
       onUpdate();
     } catch {
       toast.error('Failed to delete slot');
     }
   };
 
+  /* ── Delete all available slots for the day ── */
+  const deleteAllSlots = async () => {
+    const availableSlots = slots.filter(s => s.is_available);
+    if (availableSlots.length === 0) {
+      toast.error('No available slots to delete');
+      return;
+    }
+    setIsCreating(true);
+    try {
+      const ids = availableSlots.map(s => s.id);
+      const { error } = await supabase
+        .from('time_slots')
+        .delete()
+        .in('id', ids);
+      if (error) throw error;
+      toast.success(`Deleted ${availableSlots.length} slot(s)`);
+      queryClient.invalidateQueries({ queryKey: ['slots'] });
+      onUpdate();
+    } catch {
+      toast.error('Failed to delete slots');
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   const available = slots.filter(s => s.is_available);
   const booked = slots.filter(s => !s.is_available);
 
-  // Generate next 7 dates for copy feature (excluding current date)
-  const copyDateOptions = Array.from({ length: 7 }, (_, i) => {
-    const date = addDays(new Date(selectedDate), i + 1);
-    return { value: format(date, 'yyyy-MM-dd'), label: format(date, 'EEE, MMM d') };
-  });
-
-  const toggleCopyDate = (dateValue: string) => {
-    setCopyDates(prev =>
-      prev.includes(dateValue)
-        ? prev.filter(d => d !== dateValue)
-        : [...prev, dateValue]
-    );
-  };
+  /* ── Date picker chips (reusable) ── */
+  const DateChips = ({
+    selected,
+    onToggle,
+    onSelectAll,
+  }: {
+    selected: string[];
+    onToggle: (v: string) => void;
+    onSelectAll: () => void;
+  }) => (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-xs text-muted-foreground">Select dates</p>
+        <button
+          type="button"
+          onClick={onSelectAll}
+          className="text-xs text-primary hover:underline"
+        >
+          {selected.length === futureDateOptions.length ? 'Deselect All' : 'Select All'}
+        </button>
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {futureDateOptions.map((opt) => {
+          const isSelected = selected.includes(opt.value);
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => onToggle(opt.value)}
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${
+                isSelected
+                  ? 'gradient-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {isSelected && <Check className="h-3 w-3" />}
+              {opt.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -209,10 +325,36 @@ export function ClinicSlots({ clinicId, slots, selectedDate, onUpdate }: Props) 
           </p>
         </div>
 
-        <div className="flex gap-2">
-          {/* Copy Slots Dialog */}
+        <div className="flex gap-2 flex-wrap">
+          {/* Delete All Slots */}
+          {available.length > 0 && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" size="sm" className="text-destructive border-destructive/30">
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete All
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete all available slots?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will delete {available.length} available slot(s) for {format(new Date(selectedDate), 'MMM d, yyyy')}. Booked slots ({booked.length}) will not be affected.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={deleteAllSlots} className="bg-destructive text-destructive-foreground">
+                    Yes, Delete All
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+
+          {/* Copy Existing Slots Dialog */}
           {slots.length > 0 && (
-            <Dialog open={copyDialogOpen} onOpenChange={setCopyDialogOpen}>
+            <Dialog open={copyDialogOpen} onOpenChange={(open) => { setCopyDialogOpen(open); if (!open) setCopyDates([]); }}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm">
                   <Copy className="h-4 w-4 mr-2" />
@@ -221,47 +363,38 @@ export function ClinicSlots({ clinicId, slots, selectedDate, onUpdate }: Props) 
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Copy Slots to Other Dates</DialogTitle>
+                  <DialogTitle>Copy Today's Slots</DialogTitle>
                 </DialogHeader>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Copy {slots.length} slot(s) from {format(new Date(selectedDate), 'MMM d')} to:
+                <p className="text-sm text-muted-foreground">
+                  Copy all {slots.length} slot(s) from <strong>{format(new Date(selectedDate), 'EEE, MMM d')}</strong> to other dates:
                 </p>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {copyDateOptions.map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => toggleCopyDate(opt.value)}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                        copyDates.includes(opt.value)
-                          ? 'gradient-primary text-primary-foreground'
-                          : 'bg-muted text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-                <Button className="w-full" onClick={copySlotsToDate} disabled={isCreating || copyDates.length === 0}>
-                  {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : `Copy to ${copyDates.length} Date(s)`}
+                <DateChips
+                  selected={copyDates}
+                  onToggle={(v) => toggleDate(v, copyDates, setCopyDates)}
+                  onSelectAll={() => selectAllDates(copyDates, setCopyDates)}
+                />
+                <Button className="w-full mt-2" onClick={copySlotsToDate} disabled={isCreating || copyDates.length === 0}>
+                  {isCreating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+                  Copy to {copyDates.length} Date{copyDates.length !== 1 ? 's' : ''}
                 </Button>
               </DialogContent>
             </Dialog>
           )}
 
           {/* Add Slots Dialog */}
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setAlsoCreateForDates([]); }}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Slots
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Create Time Slots</DialogTitle>
               </DialogHeader>
 
+              {/* Mode Toggle */}
               <div className="flex gap-2 mb-4">
                 <Button
                   variant={!bulkMode ? 'default' : 'ghost'}
@@ -280,6 +413,7 @@ export function ClinicSlots({ clinicId, slots, selectedDate, onUpdate }: Props) 
               </div>
 
               {!bulkMode ? (
+                /* ── Single Slot ── */
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -291,11 +425,27 @@ export function ClinicSlots({ clinicId, slots, selectedDate, onUpdate }: Props) 
                       <Input type="time" value={form.endTime} onChange={(e) => setForm({ ...form, endTime: e.target.value })} />
                     </div>
                   </div>
+
+                  {/* Also create for other dates */}
+                  <div className="border-t border-border pt-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <CalendarPlus className="h-4 w-4 text-muted-foreground" />
+                      <label className="text-sm font-medium">Also create for other dates <span className="text-xs font-normal text-muted-foreground">(optional)</span></label>
+                    </div>
+                    <DateChips
+                      selected={alsoCreateForDates}
+                      onToggle={(v) => toggleDate(v, alsoCreateForDates, setAlsoCreateForDates)}
+                      onSelectAll={() => selectAllDates(alsoCreateForDates, setAlsoCreateForDates)}
+                    />
+                  </div>
+
                   <Button className="w-full" onClick={createSlot} disabled={isCreating}>
-                    {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Create Slot'}
+                    {isCreating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+                    Create Slot{alsoCreateForDates.length > 0 ? ` for ${1 + alsoCreateForDates.length} Dates` : ''}
                   </Button>
                 </div>
               ) : (
+                /* ── Bulk Generate ── */
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -322,7 +472,7 @@ export function ClinicSlots({ clinicId, slots, selectedDate, onUpdate }: Props) 
                   <div className="border-t border-border pt-4">
                     <div className="flex items-center gap-2 mb-3">
                       <Coffee className="h-4 w-4 text-muted-foreground" />
-                      <label className="text-sm font-medium">Break Time (Optional)</label>
+                      <label className="text-sm font-medium">Break Time <span className="text-xs font-normal text-muted-foreground">(optional)</span></label>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -331,7 +481,6 @@ export function ClinicSlots({ clinicId, slots, selectedDate, onUpdate }: Props) 
                           type="time"
                           value={bulkForm.breakStart}
                           onChange={(e) => setBulkForm({ ...bulkForm, breakStart: e.target.value })}
-                          placeholder="e.g. 13:00"
                         />
                       </div>
                       <div>
@@ -340,14 +489,27 @@ export function ClinicSlots({ clinicId, slots, selectedDate, onUpdate }: Props) 
                           type="time"
                           value={bulkForm.breakEnd}
                           onChange={(e) => setBulkForm({ ...bulkForm, breakEnd: e.target.value })}
-                          placeholder="e.g. 14:00"
                         />
                       </div>
                     </div>
                   </div>
 
+                  {/* Also create for other dates */}
+                  <div className="border-t border-border pt-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <CalendarPlus className="h-4 w-4 text-muted-foreground" />
+                      <label className="text-sm font-medium">Also create for other dates <span className="text-xs font-normal text-muted-foreground">(optional)</span></label>
+                    </div>
+                    <DateChips
+                      selected={alsoCreateForDates}
+                      onToggle={(v) => toggleDate(v, alsoCreateForDates, setAlsoCreateForDates)}
+                      onSelectAll={() => selectAllDates(alsoCreateForDates, setAlsoCreateForDates)}
+                    />
+                  </div>
+
                   <Button className="w-full" onClick={createBulkSlots} disabled={isCreating}>
-                    {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Generate Slots'}
+                    {isCreating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+                    Generate Slots{alsoCreateForDates.length > 0 ? ` for ${1 + alsoCreateForDates.length} Dates` : ''}
                   </Button>
                 </div>
               )}

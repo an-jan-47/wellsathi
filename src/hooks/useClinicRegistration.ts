@@ -37,9 +37,10 @@ export function useClinicRegistration() {
         phone: profile?.phone || '',
       }));
       // Assign clinic role for existing users
-      supabase.rpc('assign_clinic_role', { _user_id: user.id }).then(({ error }) => {
-        if (error) console.error('Error assigning clinic role:', error);
-      });
+      supabase.from('user_roles').upsert(
+        { user_id: user.id, role: 'clinic' },
+        { onConflict: 'user_id,role' }
+      );
       setCurrentStep(2);
     }
   }, [user, profile]);
@@ -91,14 +92,11 @@ export function useClinicRegistration() {
       // Store user ID for file uploads
       setUserId(authData.user.id);
 
-      // Add clinic role using secure SECURITY DEFINER function
-      const { error: roleError } = await supabase
-        .rpc('assign_clinic_role', { _user_id: authData.user.id });
-
-      if (roleError) {
-        console.error('Error adding clinic role:', roleError);
-        // Continue anyway - role can be added later
-      }
+      // Assign clinic role directly
+      await supabase.from('user_roles').upsert(
+        { user_id: authData.user.id, role: 'clinic' },
+        { onConflict: 'user_id,role' }
+      );
 
       // Update form data and move to next step
       setFormData(prev => ({
@@ -239,9 +237,15 @@ export function useClinicRegistration() {
         }
       }
 
+      // Ensure clinic role is assigned
+      await supabase.from('user_roles').upsert(
+        { user_id: userId, role: 'clinic' },
+        { onConflict: 'user_id,role' }
+      );
+
       setIsSuccess(true);
 
-      // Refresh auth store roles so dashboard access check passes
+      // Refresh auth store roles so dashboard access check passes immediately
       const { useAuthStore } = await import('@/stores/authStore');
       if (userId) {
         await useAuthStore.getState().fetchUserData(userId);

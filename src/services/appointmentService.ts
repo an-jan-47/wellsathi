@@ -55,27 +55,30 @@ export async function getClinicUpcomingAppointments(clinicId: string, fromDate: 
 }
 
 /**
- * Cancel an appointment and free its time slot.
- * Uses the atomic cancel_appointment DB function.
+ * Cancel an appointment and free its time slot atomically.
+ * Uses the `cancel_appointment` SECURITY DEFINER function in Supabase.
  */
 export async function cancelAppointment(appointmentId: string) {
-  // Try the atomic RPC function first (cancels + frees slot)
-  const { error: rpcError } = await (supabase.rpc as any)('cancel_appointment', {
+  const { error } = await (supabase.rpc as any)('cancel_appointment', {
     _appointment_id: appointmentId,
   });
+  if (error) throw error;
+}
 
-  if (rpcError) {
-    // Fallback: direct update if function not deployed yet
-    if (rpcError.code === 'PGRST202' || rpcError.code === '42883') {
-      const { error } = await supabase
-        .from('appointments')
-        .update({ status: 'cancelled' as const })
-        .eq('id', appointmentId);
-      if (error) throw error;
-      return;
-    }
-    throw rpcError;
-  }
+/**
+ * Update appointment status (by clinic) — confirm or reject.
+ * Uses the `update_appointment_status` SECURITY DEFINER function in Supabase.
+ * On rejection (cancelled), the slot is freed atomically within the same transaction.
+ */
+export async function updateAppointmentStatus(
+  appointmentId: string,
+  status: 'confirmed' | 'cancelled'
+) {
+  const { error } = await (supabase.rpc as any)('update_appointment_status', {
+    _appointment_id: appointmentId,
+    _new_status: status,
+  });
+  if (error) throw error;
 }
 
 /**
@@ -116,11 +119,10 @@ export async function bookAppointment(params: {
       const serviceRows = params.serviceIds.map(serviceId => ({
         appointment_id: appointmentId,
         service_id: serviceId,
-        fee: 0, // Fee is tracked per-service but total is on the appointment
+        fee: 0,
       }));
-      await supabase.from('booking_services').insert(serviceRows);
+      await (supabase.from as any)('booking_services').insert(serviceRows);
     } catch {
-      // Non-critical: don't fail the booking if service linking fails
       console.warn('Could not link services to booking');
     }
   }

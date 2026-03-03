@@ -102,7 +102,7 @@ export default function ClinicProfile() {
                 <div className="flex flex-wrap gap-4 mb-6">
                   <div className="flex items-center gap-2 text-foreground">
                     <IndianRupee className="h-5 w-5 text-primary" />
-                    <span className="font-semibold">₹{clinic.fees}</span>
+                    <span className="font-semibold">{clinic.fees}</span>
                     <span className="text-muted-foreground">consultation</span>
                   </div>
                   {clinic.phone && (

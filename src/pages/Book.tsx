@@ -110,6 +110,16 @@ export default function Book() {
     return slots.filter(slot => slot.start_time > currentTimeStr);
   }, [slots, selectedDate]);
 
+  /* Auto-match URL time param to a slot ID once slots load */
+  useEffect(() => {
+    if (selectedTime && !selectedSlotId && filteredSlots.length > 0) {
+      const match = filteredSlots.find(
+        s => s.start_time === selectedTime && s.is_available
+      );
+      if (match) setSelectedSlotId(match.id);
+    }
+  }, [filteredSlots, selectedTime, selectedSlotId]);
+
   /* ── handlers ── */
   const toggleService = useCallback((serviceId: string) => {
     setSelectedServiceIds(prev =>
@@ -322,8 +332,8 @@ export default function Book() {
                 {sortedServices.length > 0 && (
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg">Select Services</CardTitle>
-                      <CardDescription>Choose one or more services</CardDescription>
+                      <CardTitle className="text-lg">Select Services <span className="text-sm font-normal text-muted-foreground">(optional)</span></CardTitle>
+                      <CardDescription>Add extra services to your appointment</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-2">
@@ -565,61 +575,78 @@ export default function Book() {
           {/* ── Sidebar ── */}
           <div>
             <Card variant="elevated" className="sticky top-20">
-              <CardHeader><CardTitle className="text-lg">Booking Summary</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-11 h-11 rounded-lg gradient-primary flex items-center justify-center flex-shrink-0">
-                    <span className="font-bold text-primary-foreground">{clinic.name.charAt(0)}</span>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Booking Summary</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                {/* Clinic */}
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-md gradient-primary flex items-center justify-center flex-shrink-0">
+                    <span className="text-xs font-bold text-primary-foreground">{clinic.name.charAt(0)}</span>
                   </div>
                   <div>
-                    <p className="font-semibold text-foreground text-sm">{clinic.name}</p>
+                    <p className="font-medium text-foreground leading-tight">{clinic.name}</p>
                     <p className="text-xs text-muted-foreground">{clinic.city}</p>
                   </div>
                 </div>
 
-                <div className="border-t border-border pt-3 space-y-2 text-sm">
-                  {selectedDoctor && (
-                    <div className="flex justify-between"><span className="text-muted-foreground">Doctor</span><span className="font-medium truncate max-w-[140px]">{selectedDoctor.name}</span></div>
-                  )}
-                  <div className="flex justify-between"><span className="text-muted-foreground">Consultation</span><span>₹{baseFee}</span></div>
+                <hr className="border-border" />
 
-                  {selectedServices.length > 0 && (
-                    <div>
-                      <span className="text-muted-foreground">Services</span>
-                      <div className="mt-1 space-y-1">
-                        {selectedServices.map(s => (
-                          <div key={s.id} className="flex justify-between text-xs">
-                            <span className="text-muted-foreground truncate max-w-[120px]">{s.service_name}</span>
-                            <span>₹{s.fee}</span>
-                          </div>
-                        ))}
-                      </div>
+                {/* Details */}
+                <div className="space-y-1.5">
+                  {selectedDoctor && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Doctor</span>
+                      <span className="font-medium">{selectedDoctor.name}</span>
                     </div>
                   )}
-                  <div className="flex justify-between"><span className="text-muted-foreground">Date</span><span className="font-medium">{format(parseISO(selectedDate), 'MMM d, yyyy')}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Time</span><span className="font-medium">{selectedTime ? selectedTime.slice(0, 5) : '—'}</span></div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Date</span>
+                    <span className="font-medium">{format(parseISO(selectedDate), 'MMM d, yyyy')}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Time</span>
+                    <span className="font-medium">{selectedTime ? selectedTime.slice(0, 5) : '—'}</span>
+                  </div>
                 </div>
 
-                <div className="border-t border-border pt-3 flex justify-between items-center">
-                  <span className="font-medium text-foreground">Total</span>
+                <hr className="border-border" />
+
+                {/* Fees */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Consultation</span>
+                    <span>₹{baseFee}</span>
+                  </div>
+                  {selectedServices.map(s => (
+                    <div key={s.id} className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">{s.service_name}</span>
+                      <span>₹{s.fee}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <hr className="border-border" />
+
+                {/* Total */}
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold text-foreground">Total</span>
                   <span className="text-lg font-bold text-primary">₹{totalFee}</span>
                 </div>
 
                 {/* Payment Method */}
-                <div className="border-t border-border pt-3">
-                  <label className="text-sm font-medium text-foreground mb-2 block">Payment</label>
-                  <div className="rounded-xl border-2 border-primary bg-primary/5 p-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <Building2 className="h-4 w-4 text-primary" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-foreground text-sm">Pay at Clinic</p>
-                        <p className="text-xs text-muted-foreground">Pay when you visit</p>
-                      </div>
-                      <div className="w-4 h-4 rounded-full border-2 border-primary flex items-center justify-center">
-                        <div className="w-2 h-2 rounded-full bg-primary" />
-                      </div>
+                <hr className="border-border" />
+                <div className="rounded-xl border-2 border-primary bg-primary/5 p-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Building2 className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-foreground text-sm">Pay at Clinic</p>
+                      <p className="text-xs text-muted-foreground">Pay when you visit</p>
+                    </div>
+                    <div className="w-4 h-4 rounded-full border-2 border-primary flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-primary" />
                     </div>
                   </div>
                 </div>
