@@ -2,30 +2,52 @@ import { supabase } from '@/integrations/supabase/client';
 import type { TimeSlot } from '@/types';
 
 /**
- * Fetch available slots for a clinic on a specific date.
+ * Common logic to assign fallback values if backend doesn't provide them.
  */
-export async function getAvailableSlots(clinicId: string, date: string): Promise<TimeSlot[]> {
-  const { data, error } = await supabase
-    .from('time_slots')
-    .select('*')
-    .eq('clinic_id', clinicId)
-    .eq('date', date)
-    .eq('is_available', true)
-    .order('start_time');
-  if (error) throw error;
-  return (data as TimeSlot[]) || [];
+function mapRpcToTimeSlot(doctorId: string, date: string, rawSlot: any): TimeSlot {
+  return {
+    id: rawSlot.id || `${date}-${rawSlot.start_time}`,
+    clinic_id: '', // Deprecated in the new doctor-level routing
+    doctor_id: doctorId,
+    date: date,
+    start_time: rawSlot.start_time,
+    end_time: rawSlot.end_time,
+    is_available: rawSlot.is_available,
+  };
 }
 
 /**
- * Fetch all slots (available and unavailable) for a clinic on a date.
+ * Fetch available slots for a doctor on a specific date using PostgreSQL RPC matching.
  */
-export async function getAllSlots(clinicId: string, date: string): Promise<TimeSlot[]> {
-  const { data, error } = await supabase
-    .from('time_slots')
-    .select('*')
-    .eq('clinic_id', clinicId)
-    .eq('date', date)
-    .order('start_time');
-  if (error) throw error;
-  return (data as TimeSlot[]) || [];
+export async function getAvailableSlots(doctorId: string, date: string): Promise<TimeSlot[]> {
+  const { data, error } = await supabase.rpc('get_doctor_slots', {
+    p_doctor_id: doctorId,
+    p_date: date,
+  });
+
+  if (error) {
+    console.error('getAvailableSlots Error:', error);
+    return [];
+  }
+
+  return (data || [])
+    .map(slot => mapRpcToTimeSlot(doctorId, date, slot))
+    .filter(slot => slot.is_available);
+}
+
+/**
+ * Fetch all slots (available and unavailable) using PostgreSQL RPC matching.
+ */
+export async function getAllSlots(doctorId: string, date: string): Promise<TimeSlot[]> {
+  const { data, error } = await supabase.rpc('get_doctor_slots', {
+    p_doctor_id: doctorId,
+    p_date: date,
+  });
+
+  if (error) {
+    console.error('getAllSlots Error:', error);
+    return [];
+  }
+
+  return (data || []).map(slot => mapRpcToTimeSlot(doctorId, date, slot));
 }

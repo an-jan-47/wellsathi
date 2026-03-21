@@ -47,14 +47,40 @@ export interface Doctor {
   created_at: string;
 }
 
-export interface TimeSlot {
+export interface DoctorSchedule {
   id: string;
+  doctor_id: string;
   clinic_id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  break_start: string | null;
+  break_end: string | null;
+  slot_duration: number;
+  is_working_day: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DoctorSlotOverride {
+  id: string;
+  doctor_id: string;
+  override_date: string;
+  start_time: string | null;
+  end_time: string | null;
+  is_available: boolean;
+  reason: string | null;
+  created_at: string;
+}
+
+export interface TimeSlot {
+  id?: string;
+  clinic_id?: string;
+  doctor_id: string;
   date: string;
   start_time: string;
   end_time: string;
   is_available: boolean;
-  created_at: string;
 }
 
 export interface Appointment {

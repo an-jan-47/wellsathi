@@ -1,22 +1,23 @@
 import { useQuery } from '@tanstack/react-query';
 import { getAvailableSlots, getAllSlots } from '@/services/slotService';
 
-/** Fetch available slots for a clinic on a date. */
-export function useAvailableSlots(clinicId: string | undefined, date: string) {
+/** Fetch available slots for a doctor on a date. */
+export function useAvailableSlots(doctorId: string | undefined, date: string) {
   return useQuery({
-    queryKey: ['slots', clinicId, date, 'available'],
-    queryFn: () => getAvailableSlots(clinicId!, date),
-    enabled: !!clinicId && !!date,
-    refetchInterval: 10000, // Auto-refresh every 10s to prevent stale availability
+    queryKey: ['slots', doctorId, date, 'available'],
+    queryFn: () => getAvailableSlots(doctorId!, date),
+    enabled: !!doctorId && !!date,
+    refetchInterval: 10000,
   });
 }
 
-/** Fetch all slots (including unavailable) for a clinic on a date. */
-export function useAllSlots(clinicId: string | undefined, date: string) {
+/** Fetch all slots (including unavailable) for a doctor on a date. */
+export function useAllSlots(doctorId: string | undefined, date: string) {
   return useQuery({
-    queryKey: ['slots', clinicId, date, 'all'],
-    queryFn: () => getAllSlots(clinicId!, date),
-    enabled: !!clinicId && !!date,
-    refetchInterval: 10000, // Auto-refresh every 10s
+    queryKey: ['slots', doctorId, date, 'all'],
+    queryFn: () => getAllSlots(doctorId!, date),
+    enabled: !!doctorId && !!date,
+    refetchInterval: 10000,
   });
+
 }

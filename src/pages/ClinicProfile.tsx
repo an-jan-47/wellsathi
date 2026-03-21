@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
@@ -23,12 +23,19 @@ export default function ClinicProfile() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string>('');
 
   const { data: profileData, isLoading } = useClinicProfile(id);
-  const { data: allSlots = [] } = useAllSlots(id, selectedDate);
-
   const clinic = profileData?.clinic ?? null;
   const doctors = (profileData?.doctors ?? []) as Doctor[];
+
+  useEffect(() => {
+    if (doctors.length > 0 && !selectedDoctorId) {
+      setSelectedDoctorId(doctors[0].id);
+    }
+  }, [doctors, selectedDoctorId]);
+
+  const { data: allSlots = [] } = useAllSlots(selectedDoctorId, selectedDate);
   const services = profileData?.services ?? [];
 
   const dateOptions = Array.from({ length: 7 }, (_, i) => {
@@ -187,6 +194,19 @@ export default function ClinicProfile() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
+                  <label className="text-sm font-medium text-foreground mb-2 block">Select Doctor</label>
+                  <select 
+                    className="flex h-10 w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background mb-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    value={selectedDoctorId}
+                    onChange={(e) => setSelectedDoctorId(e.target.value)}
+                  >
+                    {doctors.length === 0 && <option value="">No doctors available</option>}
+                    {doctors.map(d => (
+                      <option key={d.id} value={d.id}>{d.name} ({d.specialization})</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
                   <label className="text-sm font-medium text-foreground mb-2 block">Select Date</label>
                   <div className="flex flex-wrap gap-2">
                     {dateOptions.map((option) => (
@@ -215,9 +235,9 @@ export default function ClinicProfile() {
                           onClick={() => {
                             if (slot.is_available) {
                               if (!user) {
-                                navigate(`/auth?redirect=/book/${clinic.id}?date=${selectedDate}&time=${slot.start_time}`);
+                                navigate(`/auth?redirect=/book/${clinic.id}?doctor=${selectedDoctorId}&date=${selectedDate}&time=${slot.start_time}`);
                               } else {
-                                navigate(`/book/${clinic.id}?date=${selectedDate}&time=${slot.start_time}`);
+                                navigate(`/book/${clinic.id}?doctor=${selectedDoctorId}&date=${selectedDate}&time=${slot.start_time}`);
                               }
                             }
                           }}
@@ -236,9 +256,9 @@ export default function ClinicProfile() {
                   size="lg"
                   onClick={() => {
                     if (!user) {
-                      navigate(`/auth?redirect=/book/${clinic.id}?date=${selectedDate}`);
+                      navigate(`/auth?redirect=/book/${clinic.id}?doctor=${selectedDoctorId}&date=${selectedDate}`);
                     } else {
-                      navigate(`/book/${clinic.id}?date=${selectedDate}`);
+                      navigate(`/book/${clinic.id}?doctor=${selectedDoctorId}&date=${selectedDate}`);
                     }
                   }}
                 >

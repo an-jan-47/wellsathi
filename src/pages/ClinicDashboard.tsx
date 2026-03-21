@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/authStore';
 import { useClinicByOwner } from '@/hooks/queries/useClinics';
 import { useClinicAppointments, useClinicUpcomingAppointments } from '@/hooks/queries/useAppointments';
-import { useAllSlots } from '@/hooks/queries/useSlots';
 import {
   Calendar, Loader2, Building2, Users, Stethoscope, Clock, CalendarCheck,
 } from 'lucide-react';
@@ -34,7 +33,6 @@ export default function ClinicDashboard() {
   const { data: allAppointments = [], refetch: refetchAllAppointments } = useClinicUpcomingAppointments(
     clinic?.id, format(new Date(), 'yyyy-MM-dd')
   );
-  const { data: slots = [], refetch: refetchSlots } = useAllSlots(clinic?.id, selectedDate);
 
   const dateOptions = Array.from({ length: 7 }, (_, i) => {
     const date = addDays(new Date(), i);
@@ -44,7 +42,7 @@ export default function ClinicDashboard() {
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: 'overview', label: 'Overview', icon: <Building2 className="h-4 w-4" /> },
     { id: 'appointments', label: 'Appointments', icon: <CalendarCheck className="h-4 w-4" /> },
-    { id: 'slots', label: 'Time Slots', icon: <Clock className="h-4 w-4" /> },
+    { id: 'slots', label: 'Doctor Schedules', icon: <Clock className="h-4 w-4" /> },
     { id: 'doctors', label: 'Doctors', icon: <Users className="h-4 w-4" /> },
     { id: 'services', label: 'Services', icon: <Stethoscope className="h-4 w-4" /> },
     { id: 'analytics', label: 'Analytics', icon: <Calendar className="h-4 w-4" /> },
@@ -109,8 +107,8 @@ export default function ClinicDashboard() {
           ))}
         </div>
 
-        {/* Date Selector for appointments and slots */}
-        {(activeTab === 'appointments' || activeTab === 'slots') && (
+          {/* Date Selector for appointments */}
+          {(activeTab === 'appointments') && (
           <div className="flex flex-wrap gap-2 mb-6">
             {dateOptions.map((option) => (
               <button
@@ -168,16 +166,13 @@ export default function ClinicDashboard() {
         )}
 
         {/* Slots Tab */}
-        {activeTab === 'slots' && (
-          <div>
-            <h2 className="text-lg font-semibold mb-4">
-              Time Slots — {format(new Date(selectedDate), 'MMMM d, yyyy')}
-            </h2>
-            <ClinicSlots clinicId={clinic.id} slots={slots} selectedDate={selectedDate} onUpdate={refetchSlots} />
-          </div>
-        )}
+          {activeTab === 'slots' && (
+            <div>
+              <ClinicSlots clinicId={clinic.id} />
+            </div>
+          )}
 
-        {/* Doctors Tab */}
+          {/* Doctors Tab */}
         {activeTab === 'doctors' && (
           <div>
             <h2 className="text-lg font-semibold mb-4">Manage Doctors</h2>

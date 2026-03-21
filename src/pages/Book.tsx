@@ -62,13 +62,12 @@ export default function Book() {
   const [bookingRefId, setBookingRefId] = useState('');
 
   /* ── step 1 selections ── */
-  const [selectedDoctorId, setSelectedDoctorId] = useState<string>('');
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string>(searchParams.get('doctor') || '');
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState(searchParams.get('date') || format(new Date(), 'yyyy-MM-dd'));
-  const [selectedSlotId, setSelectedSlotId] = useState('');
   const [selectedTime, setSelectedTime] = useState(searchParams.get('time') || '');
 
-  const { data: slots = [], refetch: refetchSlots } = useAllSlots(clinicId, selectedDate);
+  const { data: slots = [], refetch: refetchSlots } = useAllSlots(selectedDoctorId, selectedDate);
   const bookMutation = useBookAppointment();
 
   /* ── step 2 form ── */
@@ -110,15 +109,14 @@ export default function Book() {
     return slots.filter(slot => slot.start_time > currentTimeStr);
   }, [slots, selectedDate]);
 
-  /* Auto-match URL time param to a slot ID once slots load */
+  /* select first doctor automatically if none selected */
   useEffect(() => {
-    if (selectedTime && !selectedSlotId && filteredSlots.length > 0) {
-      const match = filteredSlots.find(
-        s => s.start_time === selectedTime && s.is_available
-      );
-      if (match) setSelectedSlotId(match.id);
+    if (sortedDoctors.length > 0 && !selectedDoctorId) {
+      setSelectedDoctorId(sortedDoctors[0].id);
     }
-  }, [filteredSlots, selectedTime, selectedSlotId]);
+  }, [sortedDoctors, selectedDoctorId]);
+
+
 
   /* ── handlers ── */
   const toggleService = useCallback((serviceId: string) => {
@@ -132,7 +130,7 @@ export default function Book() {
     setErrors({ ...errors, [e.target.name]: '' });
   };
 
-  const canProceedStep1 = selectedTime && selectedSlotId;
+  const canProceedStep1 = selectedTime && selectedDoctorId;
 
   const goToStep2 = () => {
     if (!canProceedStep1) {
@@ -161,17 +159,17 @@ export default function Book() {
   };
 
   const handleConfirm = () => {
-    if (!clinicId || !selectedSlotId) return;
+    if (!clinicId || !selectedTime || !selectedDoctorId) return;
 
     bookMutation.mutate({
       clinicId,
-      slotId: selectedSlotId,
+      
       patientName: formData.patientName,
       patientPhone: formData.patientPhone,
       date: selectedDate,
       time: selectedTime,
       notes: formData.notes || null,
-      doctorId: selectedDoctorId || null,
+      doctorId: selectedDoctorId,
       totalFee,
       serviceIds: selectedServiceIds,
     }, {
@@ -296,7 +294,10 @@ export default function Book() {
                           <button
                             key={doctor.id}
                             type="button"
-                            onClick={() => setSelectedDoctorId(prev => prev === doctor.id ? '' : doctor.id)}
+                            onClick={() => {
+                              setSelectedDoctorId(prev => prev === doctor.id ? '' : doctor.id);
+                              setSelectedTime('');
+                            }}
                             className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${
                               selectedDoctorId === doctor.id
                                 ? 'border-primary bg-primary/5'
@@ -374,7 +375,7 @@ export default function Book() {
                       <div className="flex flex-wrap gap-2">
                         {dateOptions.map((option) => (
                           <button key={option.value} type="button"
-                            onClick={() => { setSelectedDate(option.value); setSelectedTime(''); setSelectedSlotId(''); }}
+                            onClick={() => { setSelectedDate(option.value); setSelectedTime(''); }}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                               selectedDate === option.value ? 'gradient-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:text-foreground'
                             }`}>
@@ -390,7 +391,7 @@ export default function Book() {
                           {filteredSlots.map((slot) => (
                             <button key={slot.id} type="button"
                               disabled={!slot.is_available}
-                              onClick={() => { if (slot.is_available) { setSelectedTime(slot.start_time); setSelectedSlotId(slot.id); } }}
+                              onClick={() => { if (slot.is_available) { setSelectedTime(slot.start_time); } }}
                               className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                                 !slot.is_available
                                   ? 'bg-muted/50 text-muted-foreground/50 cursor-not-allowed line-through'

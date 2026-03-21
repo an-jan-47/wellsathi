@@ -17,6 +17,7 @@ export type Database = {
       appointments: {
         Row: {
           clinic_id: string
+          doctor_id: string
           created_at: string
           date: string
           id: string
@@ -30,6 +31,7 @@ export type Database = {
         }
         Insert: {
           clinic_id: string
+          doctor_id: string
           created_at?: string
           date: string
           id?: string
@@ -43,6 +45,7 @@ export type Database = {
         }
         Update: {
           clinic_id?: string
+          doctor_id?: string
           created_at?: string
           date?: string
           id?: string
@@ -60,6 +63,13 @@ export type Database = {
             columns: ["clinic_id"]
             isOneToOne: false
             referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
             referencedColumns: ["id"]
           },
         ]
@@ -272,40 +282,103 @@ export type Database = {
           },
         ]
       }
-      time_slots: {
+      doctor_schedules: {
         Row: {
+          break_end: string | null
+          break_start: string | null
           clinic_id: string
-          created_at: string
-          date: string
+          created_at: string | null
+          day_of_week: number
+          doctor_id: string
           end_time: string
           id: string
-          is_available: boolean
+          is_working_day: boolean | null
+          slot_duration: number
           start_time: string
+          updated_at: string | null
         }
         Insert: {
+          break_end?: string | null
+          break_start?: string | null
           clinic_id: string
-          created_at?: string
-          date: string
+          created_at?: string | null
+          day_of_week: number
+          doctor_id: string
           end_time: string
           id?: string
-          is_available?: boolean
+          is_working_day?: boolean | null
+          slot_duration?: number
           start_time: string
+          updated_at?: string | null
         }
         Update: {
+          break_end?: string | null
+          break_start?: string | null
           clinic_id?: string
-          created_at?: string
-          date?: string
+          created_at?: string | null
+          day_of_week?: number
+          doctor_id?: string
           end_time?: string
           id?: string
-          is_available?: boolean
+          is_working_day?: boolean | null
+          slot_duration?: number
           start_time?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "time_slots_clinic_id_fkey"
+            foreignKeyName: "doctor_schedules_clinic_id_fkey"
             columns: ["clinic_id"]
             isOneToOne: false
             referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_schedules_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      doctor_slot_overrides: {
+        Row: {
+          created_at: string | null
+          doctor_id: string
+          end_time: string | null
+          id: string
+          is_available: boolean | null
+          override_date: string
+          reason: string | null
+          start_time: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          doctor_id: string
+          end_time?: string | null
+          id?: string
+          is_available?: boolean | null
+          override_date: string
+          reason?: string | null
+          start_time?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          doctor_id?: string
+          end_time?: string | null
+          id?: string
+          is_available?: boolean | null
+          override_date?: string
+          reason?: string | null
+          start_time?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doctor_slot_overrides_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
             referencedColumns: ["id"]
           },
         ]
@@ -336,6 +409,17 @@ export type Database = {
         }
         Returns: boolean
       }
+      get_doctor_slots: {
+        Args: {
+          p_doctor_id: string,
+          p_date: string,
+        },
+        Returns: {
+          start_time: string,
+          end_time: string,
+          is_available: boolean,
+        }[],
+      },
       owns_clinic: {
         Args: { _clinic_id: string; _user_id: string }
         Returns: boolean

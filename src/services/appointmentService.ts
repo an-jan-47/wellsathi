@@ -55,73 +55,69 @@ export async function getClinicUpcomingAppointments(clinicId: string, fromDate: 
 }
 
 /**
- * Cancel an appointment and free its time slot atomically.
- * Uses the `cancel_appointment` SECURITY DEFINER function in Supabase.
+ * Cancel an appointment atomically.
  */
 export async function cancelAppointment(appointmentId: string) {
-  const { error } = await (supabase.rpc as any)('cancel_appointment', {
-    _appointment_id: appointmentId,
-  });
+  const { error } = await supabase
+    .from('appointments')
+    .update({ status: 'cancelled' })
+    .eq('id', appointmentId);
   if (error) throw error;
 }
 
 /**
- * Update appointment status (by clinic) — confirm or reject.
- * Uses the `update_appointment_status` SECURITY DEFINER function in Supabase.
- * On rejection (cancelled), the slot is freed atomically within the same transaction.
+ * Update appointment status — confirm or reject.
  */
 export async function updateAppointmentStatus(
   appointmentId: string,
   status: 'confirmed' | 'cancelled'
 ) {
-  const { error } = await (supabase.rpc as any)('update_appointment_status', {
-    _appointment_id: appointmentId,
-    _new_status: status,
-  });
+  const { error } = await supabase
+    .from('appointments')
+    .update({ status })
+    .eq('id', appointmentId);
   if (error) throw error;
 }
 
 /**
- * Book an appointment atomically using the DB function.
- * Supports doctor selection and multi-service bookings.
+ * Book an appointment directly.
+ * Collisions are preventing by DB unique index.
  */
 export async function bookAppointment(params: {
   clinicId: string;
-  slotId: string;
   patientName: string;
   patientPhone: string;
   date: string;
   time: string;
   notes?: string | null;
-  doctorId?: string | null;
+  doctorId: string; // Doctor is now required
   totalFee?: number;
   serviceIds?: string[];
 }): Promise<string> {
   const { data, error } = await supabase.rpc('book_appointment', {
     _clinic_id: params.clinicId,
-    _slot_id: params.slotId,
+    _slot_id: '00000000-0000-0000-0000-000000000000', // backward compatible dummy id
     _patient_name: params.patientName,
     _patient_phone: params.patientPhone,
     _date: params.date,
     _time: params.time,
     _notes: params.notes || null,
-    _doctor_id: params.doctorId || null,
+    _doctor_id: params.doctorId,
     _total_fee: params.totalFee || 0,
   });
 
   if (error) throw error;
-
   const appointmentId = data as string;
 
   // Insert booking_services for multi-service support
-  if (params.serviceIds && params.serviceIds.length > 0 && appointmentId) {
+  if (params.serviceIds && params.serviceIds.length > 0 && appointmentId) {     
     try {
       const serviceRows = params.serviceIds.map(serviceId => ({
         appointment_id: appointmentId,
         service_id: serviceId,
         fee: 0,
       }));
-      await (supabase.from as any)('booking_services').insert(serviceRows);
+      await supabase.from('booking_services').insert(serviceRows);     
     } catch {
       console.warn('Could not link services to booking');
     }
