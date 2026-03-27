@@ -7,15 +7,17 @@ export interface AppointmentWithClinic extends Appointment {
     address: string;
     city: string;
   };
+  // 'doctors' is already inherited from the base Appointment type (id, name, specialization)
 }
 
+
 /**
- * Fetch user's appointments with clinic data.
+ * Fetch user's appointments with clinic and doctor data.
  */
 export async function getUserAppointments(userId: string): Promise<AppointmentWithClinic[]> {
   const { data, error } = await supabase
     .from('appointments')
-    .select('*, clinics(name, address, city)')
+    .select('*, clinics(name, address, city), doctors(name, specialization)')
     .eq('user_id', userId)
     .order('date', { ascending: false })
     .order('time', { ascending: true })
@@ -24,13 +26,21 @@ export async function getUserAppointments(userId: string): Promise<AppointmentWi
   return (data as AppointmentWithClinic[]) || [];
 }
 
+
 /**
  * Fetch appointments for a clinic on a specific date.
  */
 export async function getClinicAppointments(clinicId: string, date: string): Promise<Appointment[]> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('appointments')
-    .select('*')
+    .select(`
+      *,
+      doctors ( id, name, specialization ),
+      booking_services (
+        fee,
+        clinic_services ( service_name )
+      )
+    `)
     .eq('clinic_id', clinicId)
     .eq('date', date)
     .order('time');
@@ -42,9 +52,16 @@ export async function getClinicAppointments(clinicId: string, date: string): Pro
  * Fetch upcoming appointments for a clinic.
  */
 export async function getClinicUpcomingAppointments(clinicId: string, fromDate: string): Promise<Appointment[]> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from('appointments')
-    .select('*')
+    .select(`
+      *,
+      doctors ( id, name, specialization ),
+      booking_services (
+        fee,
+        clinic_services ( service_name )
+      )
+    `)
     .eq('clinic_id', clinicId)
     .gte('date', fromDate)
     .order('date')
@@ -93,6 +110,7 @@ export async function bookAppointment(params: {
   doctorId: string; // Doctor is now required
   totalFee?: number;
   serviceIds?: string[];
+  autoApprove?: boolean;
 }): Promise<string> {
   const { data, error } = await supabase.rpc('book_appointment', {
     _clinic_id: params.clinicId,
@@ -117,10 +135,14 @@ export async function bookAppointment(params: {
         service_id: serviceId,
         fee: 0,
       }));
-      await supabase.from('booking_services').insert(serviceRows);     
+      await (supabase as any).from('booking_services').insert(serviceRows);     
     } catch {
       console.warn('Could not link services to booking');
     }
+  }
+
+  if (params.autoApprove) {
+    await updateAppointmentStatus(appointmentId, 'confirmed');
   }
 
   return appointmentId;

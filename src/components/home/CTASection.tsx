@@ -1,35 +1,29 @@
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { ArrowRight, Building2 } from 'lucide-react';
 
 export function CTASection() {
   return (
-    <section className="py-20 gradient-hero">
-      <div className="container">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="w-16 h-16 rounded-2xl gradient-secondary flex items-center justify-center mx-auto mb-6">
-            <Building2 className="h-8 w-8 text-secondary-foreground" />
-          </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Are You a Clinic Owner?
-          </h2>
-          <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
-            Join WellSathi to manage appointments, reach more patients, and grow your practice. 
-            It's free to get started.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="secondary" size="lg" asChild className="group">
-              <Link to="/register-clinic">
-                Register Your Clinic
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Link>
-            </Button>
-            <Button variant="outline" size="lg" asChild>
-              <Link to="/search">
-                Browse as Patient
-              </Link>
-            </Button>
-          </div>
+    <section className="py-16 bg-white flex justify-center px-4">
+      <div className="w-full max-w-[900px] bg-primary/5 rounded-[32px] px-8 py-16 text-center border border-primary/10 animate-in slide-in-from-bottom-10 duration-1000 ease-out">
+        <h2 className="text-3xl font-black text-slate-900 mb-4">
+          Are You a Clinic Owner?
+        </h2>
+        <p className="text-[15px] font-medium text-slate-500 mb-10 max-w-2xl mx-auto leading-relaxed">
+          Join our network of top-rated healthcare providers. Manage appointments, 
+          grow your practice, and deliver better patient experiences.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <Link 
+            to="/register-clinic"
+            className="bg-primary hover:bg-primary/90 text-white font-bold px-8 py-3.5 rounded-full transition-all active:scale-95 shadow-lg shadow-primary/50/20"
+          >
+            Partner With Us
+          </Link>
+          <Link 
+            to="/search"
+            className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold px-8 py-3.5 rounded-full transition-all active:scale-95"
+          >
+            Browse as Patient
+          </Link>
         </div>
       </div>
     </section>

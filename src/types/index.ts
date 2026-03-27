@@ -98,6 +98,17 @@ export interface Appointment {
   created_at: string;
   updated_at: string;
   clinic?: Clinic;
+  doctors?: {
+    id: string;
+    name: string;
+    specialization: string;
+  };
+  booking_services?: {
+    fee: number;
+    clinic_services: {
+      service_name: string;
+    };
+  }[];
 }
 
 export interface BookingService {

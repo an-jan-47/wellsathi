@@ -11,13 +11,13 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="md:col-span-2">
-            <Link to="/" className="flex items-center gap-2 mb-4">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl gradient-primary">
-                <Heart className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <span className="text-xl font-bold text-foreground">
-                Well<span className="text-primary">Sathi</span>
-              </span>
+            <Link to="/" className="flex items-center gap-2.5 mb-4 group cursor-pointer">
+               <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center bg-primary/10 group-hover:scale-105 transition-transform duration-300 p-1.5">
+                 <img src="/favicon.ico" alt="WellSathi Logo" className="w-full h-full object-contain" />
+               </div>
+               <span className="text-[20px] font-black text-slate-900 tracking-tight">
+                 WellSathi
+               </span>
             </Link>
             <p className="text-muted-foreground text-sm max-w-sm mb-4">
               Your trusted companion for finding the best healthcare. Book appointments with top clinics near you in seconds.

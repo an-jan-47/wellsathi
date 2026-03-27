@@ -103,7 +103,7 @@ export default function ResetPassword() {
                 <Heart className="h-5 w-5 text-primary-foreground" />
               </div>
               <span className="text-2xl font-bold text-foreground">
-                Well<span className="text-primary">Sathi</span>
+                WellSathi
               </span>
             </Link>
             <CardTitle className="text-2xl">Set New Password</CardTitle>

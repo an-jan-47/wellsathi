@@ -1,44 +1,83 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Plus, Trash2, Edit, IndianRupee, Loader2, X, Check, Stethoscope } from 'lucide-react';
+import { 
+  Building2, MapPin, Phone, Edit2, Wallet, Plus, CheckCircle2,
+  Clock, ShieldCheck, Loader2, Stethoscope, MoreVertical
+} from 'lucide-react';
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
+
+const COMMON_SERVICES = [
+  'General Consultation',
+  'Specialist Consultation',
+  'Follow-up Visit',
+  'Vaccination',
+  'Blood Test',
+  'ECG',
+  'X-Ray',
+  'Ultrasound',
+  'Dental Cleaning',
+  'Root Canal',
+  'Dental Filling',
+  'Tooth Extraction',
+  'Physiotherapy Session',
+  'Health Checkup',
+  'Full Body Checkup',
+  'Online Consultation'
+];
 
 interface Service {
   id: string;
   clinic_id: string;
   service_name: string;
   fee: number;
-  created_at: string;
 }
 
 interface Props {
-  clinicId: string;
+  clinic: any;
+  onUpdateClinic: () => void;
 }
 
-export function ClinicServices({ clinicId }: Props) {
+export function ClinicServices({ clinic, onUpdateClinic }: Props) {
   const [services, setServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const [form, setForm] = useState({ serviceName: '', fee: 0 });
+  
+  // Service Dialog
+  const [serviceDialogOpen, setServiceDialogOpen] = useState(false);
+  const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
+  const [isSavingService, setIsSavingService] = useState(false);
+  const [serviceForm, setServiceForm] = useState({ serviceName: '', fee: 0 });
+
+  // Clinic Edit Dialog
+  const [clinicDialogOpen, setClinicDialogOpen] = useState(false);
+  const [isSavingClinic, setIsSavingClinic] = useState(false);
+  const [clinicForm, setClinicForm] = useState({ name: '', address: '', phone: '', fees: 0 });
 
   useEffect(() => {
-    fetchServices();
-  }, [clinicId]);
+    if (clinic) fetchServices();
+
+    const handleOpenModal = () => openServiceCreate();
+    window.addEventListener('open-add-service-modal', handleOpenModal);
+    return () => window.removeEventListener('open-add-service-modal', handleOpenModal);
+  }, [clinic]);
 
   const fetchServices = async () => {
     try {
       const { data, error } = await supabase
         .from('clinic_services')
         .select('*')
-        .eq('clinic_id', clinicId)
+        .eq('clinic_id', clinic.id)
         .order('service_name');
       if (error) throw error;
       setServices(data || []);
@@ -49,49 +88,35 @@ export function ClinicServices({ clinicId }: Props) {
     }
   };
 
-  const createService = async () => {
-    if (!form.serviceName.trim()) {
+  const saveService = async () => {
+    if (!serviceForm.serviceName.trim()) {
       toast.error('Service name is required');
       return;
     }
-    setIsSaving(true);
+    setIsSavingService(true);
     try {
-      const { error } = await supabase.from('clinic_services').insert({
-        clinic_id: clinicId,
-        service_name: form.serviceName.trim(),
-        fee: form.fee,
-      });
-      if (error) throw error;
-      toast.success('Service added');
-      setForm({ serviceName: '', fee: 0 });
-      setDialogOpen(false);
+      if (editingServiceId) {
+        const { error } = await supabase.from('clinic_services').update({
+          service_name: serviceForm.serviceName.trim(),
+          fee: serviceForm.fee,
+        }).eq('id', editingServiceId);
+        if (error) throw error;
+        toast.success('Service updated');
+      } else {
+        const { error } = await supabase.from('clinic_services').insert({
+          clinic_id: clinic.id,
+          service_name: serviceForm.serviceName.trim(),
+          fee: serviceForm.fee,
+        });
+        if (error) throw error;
+        toast.success('Service added');
+      }
+      setServiceDialogOpen(false);
       fetchServices();
     } catch {
-      toast.error('Failed to add service');
+      toast.error('Failed to save service');
     } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const updateService = async (id: string) => {
-    if (!form.serviceName.trim()) {
-      toast.error('Service name is required');
-      return;
-    }
-    setIsSaving(true);
-    try {
-      const { error } = await supabase.from('clinic_services').update({
-        service_name: form.serviceName.trim(),
-        fee: form.fee,
-      }).eq('id', id);
-      if (error) throw error;
-      toast.success('Service updated');
-      setEditingId(null);
-      fetchServices();
-    } catch {
-      toast.error('Failed to update service');
-    } finally {
-      setIsSaving(false);
+      setIsSavingService(false);
     }
   };
 
@@ -106,77 +131,263 @@ export function ClinicServices({ clinicId }: Props) {
     }
   };
 
+  const openServiceEdit = (svc: Service) => {
+    setEditingServiceId(svc.id);
+    setServiceForm({ serviceName: svc.service_name, fee: svc.fee });
+    setServiceDialogOpen(true);
+  };
+
+  const openServiceCreate = () => {
+    setEditingServiceId(null);
+    setServiceForm({ serviceName: '', fee: 0 });
+    setServiceDialogOpen(true);
+  };
+
+  const openClinicEdit = () => {
+    setClinicForm({
+      name: clinic.name || '',
+      address: clinic.address || '',
+      phone: clinic.phone || '',
+      fees: clinic.fees || 0
+    });
+    setClinicDialogOpen(true);
+  };
+
+  const saveClinicProfile = async () => {
+    setIsSavingClinic(true);
+    try {
+      const { error } = await supabase.from('clinics').update({
+        name: clinicForm.name.trim(),
+        address: clinicForm.address.trim(),
+        phone: clinicForm.phone.trim(),
+        fees: clinicForm.fees,
+      }).eq('id', clinic.id);
+      if (error) throw error;
+      toast.success('Clinic profile updated');
+      setClinicDialogOpen(false);
+      onUpdateClinic();
+    } catch {
+      toast.error('Failed to update clinic');
+    } finally {
+      setIsSavingClinic(false);
+    }
+  };
+
   if (isLoading) {
-    return <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
+    return <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-slate-900" /></div>;
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">{services.length} service{services.length !== 1 ? 's' : ''}</p>
-        <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (o) setForm({ serviceName: '', fee: 0 }); }}>
-          <DialogTrigger asChild>
-            <Button><Plus className="h-4 w-4 mr-2" />Add Service</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader><DialogTitle>Add Service</DialogTitle></DialogHeader>
-            <div className="space-y-4 pt-2">
-              <div><label className="text-sm font-medium mb-2 block">Service Name *</label><Input value={form.serviceName} onChange={(e) => setForm({ ...form, serviceName: e.target.value })} placeholder="e.g. General Consultation" /></div>
-              <div><label className="text-sm font-medium mb-2 block">Fee (₹)</label><Input type="number" min={0} value={form.fee} onChange={(e) => setForm({ ...form, fee: parseInt(e.target.value) || 0 })} /></div>
-              <Button className="w-full" onClick={createService} disabled={isSaving}>
-                {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Add Service'}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+    <div className="space-y-8 pb-10 max-w-6xl mx-auto animate-in fade-in duration-500">
+      
+      {/* Header */}
+      <div className="mb-6 pl-1">
+        <h2 className="text-[28px] sm:text-[32px] font-black text-slate-900 tracking-tight leading-tight">Clinic Profile</h2>
+        <p className="text-slate-500 mt-2 font-medium text-[15px]">Manage your clinic details, consultation fees, and offered services.</p>
       </div>
 
-      {services.length === 0 ? (
-        <Card className="bg-muted/50">
-          <CardContent className="py-12 text-center text-muted-foreground">
-            <Stethoscope className="h-10 w-10 mx-auto mb-3 opacity-40" />
-            <p className="font-medium">No services added yet</p>
-            <p className="text-sm mt-1">Add services your clinic offers</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-3">
-          {services.map((svc) => (
-            <Card key={svc.id}>
-              <CardContent className="p-4">
-                {editingId === svc.id ? (
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <Input className="flex-1" value={form.serviceName} onChange={(e) => setForm({ ...form, serviceName: e.target.value })} />
-                    <Input className="w-28" type="number" value={form.fee} onChange={(e) => setForm({ ...form, fee: parseInt(e.target.value) || 0 })} />
-                    <div className="flex gap-2">
-                      <Button size="sm" onClick={() => updateService(svc.id)} disabled={isSaving}><Check className="h-4 w-4" /></Button>
-                      <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}><X className="h-4 w-4" /></Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Stethoscope className="h-4 w-4 text-primary" />
-                      <span className="font-medium">{svc.service_name}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-semibold text-primary flex items-center gap-1">
-                        <IndianRupee className="h-3 w-3" />{svc.fee}
-                      </span>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setEditingId(svc.id); setForm({ serviceName: svc.service_name, fee: svc.fee }); }}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteService(svc.id)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
+      {/* Top Banner Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Main Profile Info */}
+        <div className="lg:col-span-2 bg-white rounded-[24px] shadow-[0_2px_15px_-5px_rgba(0,0,0,0.05)] border border-slate-100 p-6 md:p-8 flex flex-col md:flex-row gap-6 relative overflow-hidden">
+          {/* Background decoration */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[#f0fdfa] to-transparent rounded-bl-full opacity-50 pointer-events-none"></div>
+          
+          <div className="w-[100px] h-[100px] bg-[#f8fbfa] border-2 border-slate-50 rounded-3xl flex items-center justify-center flex-shrink-0 shadow-sm z-10">
+            <Building2 className="w-10 h-10 text-slate-900" />
+          </div>
+          
+          <div className="flex-1 z-10">
+            <h3 className="text-2xl font-black text-slate-900 tracking-tight leading-none mb-4">{clinic.name}</h3>
+            
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <MapPin className="w-4 h-4 mt-0.5 text-slate-400 flex-shrink-0" />
+                <p className="text-[14px] text-slate-500 font-medium leading-relaxed max-w-md">{clinic.address || "No address provided"}</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <Phone className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                <p className="text-[14px] text-slate-500 font-medium">{clinic.phone || "No phone provided"}</p>
+              </div>
+            </div>
+            
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Button onClick={openClinicEdit} className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-sm font-bold rounded-xl px-5 transition-colors">
+                <Edit2 className="w-4 h-4 mr-2" />
+                Edit Profile
+              </Button>
+            </div>
+          </div>
         </div>
-      )}
+
+        {/* Consultation Fee Card */}
+        <div className="bg-white rounded-[24px] shadow-[0_2px_15px_-5px_rgba(0,0,0,0.05)] border border-slate-100 p-6 md:p-8 flex flex-col justify-center relative overflow-hidden group">
+          <div className="absolute top-4 right-4">
+             <button onClick={openClinicEdit} className="p-2 text-slate-300 hover:text-slate-900 transition-colors bg-white rounded-lg shadow-sm border border-slate-50 opacity-0 group-hover:opacity-100">
+               <Edit2 className="w-4 h-4" />
+             </button>
+          </div>
+          <div className="w-12 h-12 bg-[#ebfcf9] rounded-2xl flex items-center justify-center mb-5">
+            <Wallet className="w-6 h-6 text-primary" strokeWidth={2.5}/>
+          </div>
+          <h4 className="text-[13px] font-extrabold text-slate-500 uppercase tracking-widest mb-1">Consultation Fee</h4>
+          <div className="flex items-baseline gap-1 mt-2">
+            <span className="text-3xl font-black text-slate-900">₹{clinic.fees}</span>
+            <span className="text-[14px] font-bold text-slate-400">/ session</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Services Section */}
+      <div className="mt-12">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pl-1">
+          <div>
+            <h3 className="text-xl font-black text-slate-900 tracking-tight">Clinic Services</h3>
+            <p className="text-[14px] text-slate-500 font-medium mt-1">Manage specialized treatments and services offered.</p>
+          </div>
+          <Button onClick={openServiceCreate} className="bg-[#006b5f] hover:bg-[#005048] text-white font-bold rounded-xl shadow-lg shadow-[#006b5f]/20 transition-all px-6 py-[22px]">
+            <Plus className="w-4 h-4 mr-2" strokeWidth={3} />
+            Add New Service
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {services.map((svc) => (
+            <div key={svc.id} className="bg-white p-5 rounded-[20px] shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)] border border-slate-100 group hover:shadow-md transition-all relative">
+              <div className="flex justify-between items-start mb-6">
+                <h4 className="text-[16px] font-black text-slate-900 leading-tight pr-6 truncate">{svc.service_name}</h4>
+                <div className="flex items-center gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onClick={() => openServiceEdit(svc)} className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors">
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg transition-colors hover:bg-slate-50">
+                        <MoreVertical className="w-4 h-4"/>
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="rounded-xl border-slate-100 shadow-xl w-40">
+                      <DropdownMenuItem onClick={() => deleteService(svc.id)} className="text-destructive font-bold cursor-pointer py-2">
+                        Remove Service
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-slate-400">
+                  <span className="text-[12px] font-bold uppercase tracking-widest text-slate-900/70 bg-[#006b5f]/10 px-2.5 py-1 rounded-md">Fee</span>
+                </div>
+                <span className="text-[20px] font-black text-slate-900">₹{svc.fee}</span>
+              </div>
+            </div>
+          ))}
+
+          {/* Add New Service Card */}
+          <button onClick={openServiceCreate} className="bg-[#fcfdfd] border-2 border-dashed border-slate-200 hover:border-primary rounded-[20px] p-6 flex flex-col items-center justify-center min-h-[180px] group transition-colors">
+             <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-slate-300 group-hover:text-primary shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-slate-100 mb-4 transition-colors">
+               <Plus className="w-6 h-6" strokeWidth={2.5} />
+             </div>
+             <span className="text-[14px] font-bold text-slate-500 group-hover:text-slate-800 transition-colors">Add New Service</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Bottom Status Info */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
+        <div className="bg-[#ebfcf9] rounded-[20px] p-6 flex items-start gap-4">
+           <ShieldCheck className="w-6 h-6 text-primary flex-shrink-0" strokeWidth={2}/>
+           <div>
+             <h5 className="text-[14px] font-extrabold text-slate-900 mb-1">Certification Status</h5>
+             <p className="text-[13px] text-slate-600 font-medium">Verified by local health department. Active until Dec 2026.</p>
+           </div>
+        </div>
+        <div className="bg-slate-50 rounded-[20px] p-6 flex items-start gap-4 border border-slate-100">
+           <Clock className="w-6 h-6 text-slate-400 flex-shrink-0" strokeWidth={2}/>
+           <div>
+             <h5 className="text-[14px] font-extrabold text-slate-900 mb-1">Clinic Hours</h5>
+             <p className="text-[13px] text-slate-500 font-medium">Standard operations: Mon - Sat, 09:00 AM - 19:00 PM.</p>
+           </div>
+        </div>
+      </div>
+
+      {/* Service Dialog */}
+      <Dialog open={serviceDialogOpen} onOpenChange={setServiceDialogOpen}>
+        <DialogContent className="rounded-3xl p-8 border-slate-100 shadow-2xl max-w-md">
+          <DialogHeader className="mb-4">
+            <DialogTitle className="text-2xl font-black text-slate-900">
+              {editingServiceId ? 'Edit Service' : 'Add New Service'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-5">
+            <div>
+              <label className="text-[12px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">Service Name</label>
+              <Select value={serviceForm.serviceName} onValueChange={(val) => setServiceForm({ ...serviceForm, serviceName: val })}>
+                <SelectTrigger className="h-12 bg-slate-50 border-slate-200 rounded-xl font-bold focus:border-[#006b5f] focus:ring-[#006b5f]/20">
+                  <SelectValue placeholder="Select a service" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60 rounded-xl">
+                  {COMMON_SERVICES.map((name) => (
+                    <SelectItem key={name} value={name} className="font-medium cursor-pointer py-2">
+                      {name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-[12px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">Service Fee (₹)</label>
+              <Input 
+                type="number" min={0}
+                value={serviceForm.fee} 
+                onChange={(e) => setServiceForm({ ...serviceForm, fee: parseInt(e.target.value) || 0 })} 
+                className="h-12 bg-slate-50 border-slate-200 rounded-xl font-bold focus:border-[#006b5f] focus:ring-[#006b5f]/20" 
+              />
+            </div>
+            <Button 
+              className="w-full py-6 mt-2 bg-[#006b5f] hover:bg-[#005048] text-white rounded-xl font-bold shadow-lg" 
+              onClick={saveService} 
+              disabled={isSavingService}
+            >
+              {isSavingService ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Save Service'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Clinic Profile Dialog */}
+      <Dialog open={clinicDialogOpen} onOpenChange={setClinicDialogOpen}>
+        <DialogContent className="rounded-3xl p-8 border-slate-100 shadow-2xl max-w-md">
+          <DialogHeader className="mb-4">
+            <DialogTitle className="text-2xl font-black text-slate-900">Edit Clinic Profile</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-[12px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">Clinic Name</label>
+              <Input value={clinicForm.name} onChange={(e) => setClinicForm({ ...clinicForm, name: e.target.value })} className="h-12 bg-slate-50 border-slate-200 rounded-xl font-bold focus:border-[#006b5f]" />
+            </div>
+            <div>
+              <label className="text-[12px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">Address</label>
+              <Textarea value={clinicForm.address} onChange={(e) => setClinicForm({ ...clinicForm, address: e.target.value })} rows={2} className="bg-slate-50 border-slate-200 rounded-xl font-medium focus:border-[#006b5f]" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-[12px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">Phone</label>
+                <Input value={clinicForm.phone} onChange={(e) => setClinicForm({ ...clinicForm, phone: e.target.value })} className="h-12 bg-slate-50 border-slate-200 rounded-xl font-bold focus:border-[#006b5f]" />
+              </div>
+              <div>
+                <label className="text-[12px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">Default Fee</label>
+                <Input type="number" value={clinicForm.fees} onChange={(e) => setClinicForm({ ...clinicForm, fees: parseInt(e.target.value) || 0 })} className="h-12 bg-slate-50 border-slate-200 rounded-xl font-bold focus:border-[#006b5f]" />
+              </div>
+            </div>
+            <Button className="w-full py-6 mt-4 bg-[#006b5f] hover:bg-[#005048] text-white rounded-xl font-bold shadow-lg" onClick={saveClinicProfile} disabled={isSavingClinic}>
+              {isSavingClinic ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Save Changes'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

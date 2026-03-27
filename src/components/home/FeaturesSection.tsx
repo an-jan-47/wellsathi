@@ -1,62 +1,54 @@
-import { Card, CardContent } from '@/components/ui/card';
-import { Search, Calendar, Clock, Shield } from 'lucide-react';
+import { CheckCircle2, Zap, ShieldCheck } from 'lucide-react';
 
 const features = [
   {
-    icon: Search,
-    title: 'Easy Search',
-    description: 'Find clinics by location, specialty, or ratings. Filter results to match your needs.',
-  },
-  {
-    icon: Calendar,
-    title: 'Quick Booking',
-    description: 'Book appointments in seconds. No account required for your first visit.',
-  },
-  {
-    icon: Clock,
-    title: 'Real-time Slots',
-    description: 'See available time slots instantly. No more phone calls or waiting.',
-  },
-  {
-    icon: Shield,
+    icon: CheckCircle2,
     title: 'Verified Clinics',
-    description: 'All clinics are verified for quality. Read reviews from real patients.',
+    description: 'We carefully vet every clinic to ensure you receive the highest standard of care.',
+  },
+  {
+    icon: Zap,
+    title: 'Instant Booking',
+    description: 'Skip the waiting times. Book your appointment instantly with real-time availability.',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Secure Records',
+    description: 'Your health data is encrypted and stored securely, accessible only by you and your doctor.',
   },
 ];
 
 export function FeaturesSection() {
   return (
-    <section className="py-20 bg-background">
-      <div className="container">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-foreground mb-4">
+    <section className="py-24 bg-white">
+      <div className="container max-w-[1000px]">
+        <div className="text-center mb-16 animate-in slide-in-from-bottom-4 duration-700">
+          <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-4">
             Why Choose WellSathi?
           </h2>
-          <p className="text-muted-foreground max-w-xl mx-auto">
-            We make finding and booking healthcare appointments simple and stress-free.
+          <p className="text-slate-500 font-medium max-w-xl mx-auto">
+            Experience healthcare booking designed for your peace of mind.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
           {features.map((feature, index) => (
-            <Card 
+            <div 
               key={feature.title} 
-              variant="interactive"
-              className="group animate-slide-up"
-              style={{ animationDelay: `${index * 0.1}s` }}
+              className="flex flex-col items-center group animate-in slide-in-from-bottom-8 duration-700 fill-mode-both"
+              style={{ animationDelay: `${index * 150}ms` }}
             >
-              <CardContent className="pt-6">
-                <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <feature.icon className="h-6 w-6 text-primary-foreground" />
-                </div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">
-                  {feature.title}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {feature.description}
-                </p>
-              </CardContent>
-            </Card>
+              {/* Floating animated icon container */}
+              <div className="w-16 h-16 rounded-3xl bg-primary/10 flex items-center justify-center mb-6 text-primary group-hover:-translate-y-2 group-hover:shadow-primary/50 transition-all duration-300 ease-out">
+                <feature.icon className="h-8 w-8 stroke-[2.5]" />
+              </div>
+              <h3 className="text-[19px] font-extrabold text-slate-900 mb-3">
+                {feature.title}
+              </h3>
+              <p className="text-[14px] text-slate-500 font-medium leading-relaxed max-w-[280px]">
+                {feature.description}
+              </p>
+            </div>
           ))}
         </div>
       </div>

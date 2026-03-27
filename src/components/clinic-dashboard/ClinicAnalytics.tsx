@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, TrendingUp, Users, Calendar, IndianRupee, Star } from 'lucide-react';
-import { format, subDays, parseISO } from 'date-fns';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Loader2, TrendingUp, Users, Calendar, IndianRupee, Star, Activity, PieChart as PieIcon } from 'lucide-react';
+import { format, subDays } from 'date-fns';
+import { 
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, 
+  PieChart, Pie, Cell, CartesianGrid 
+} from 'recharts';
 
 interface Props {
   clinicId: string;
@@ -72,104 +74,186 @@ export function ClinicAnalytics({ clinicId, clinicFees, clinicRating }: Props) {
   };
 
   if (isLoading) {
-    return <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+    return <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-slate-900" /></div>;
   }
 
   const estimatedRevenue = confirmedCount * clinicFees;
 
   const statusData = [
-    { name: 'Confirmed', value: confirmedCount, color: 'hsl(var(--success))' },
-    { name: 'Pending', value: pendingCount, color: 'hsl(var(--warning))' },
-    { name: 'Cancelled', value: cancelledCount, color: 'hsl(var(--destructive))' },
+    { name: 'Confirmed', value: confirmedCount, color: '#006b5f' }, // primary brand green
+    { name: 'Pending', value: pendingCount, color: '#f59e0b' },   // amber
+    { name: 'Cancelled', value: cancelledCount, color: '#f43f5e' }, // rose/destructive
   ].filter(d => d.value > 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 animate-in fade-in duration-500 pb-10 max-w-7xl mx-auto">
+      
+      {/* Header */}
+      <div className="mb-8 pl-1">
+        <h2 className="text-[28px] sm:text-[32px] font-black text-slate-900 tracking-tight leading-tight">Clinic Analytics</h2>
+        <p className="text-slate-500 mt-2 font-medium text-[15px]">Monitor clinic performance, appointment trends, and revenue estimates.</p>
+      </div>
+
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={<Calendar className="h-5 w-5" />} label="Total Appointments" value={totalAppointments} color="primary" />
-        <StatCard icon={<IndianRupee className="h-5 w-5" />} label="Est. Revenue" value={`₹${estimatedRevenue.toLocaleString()}`} color="success" />
-        <StatCard icon={<Star className="h-5 w-5" />} label="Avg Rating" value={clinicRating ? Number(clinicRating).toFixed(1) : 'N/A'} color="warning" />
-        <StatCard icon={<Users className="h-5 w-5" />} label="Total Reviews" value={reviewCount} color="info" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard 
+          icon={<Calendar className="h-6 w-6 text-slate-900" />} 
+          label="Total Appointments" 
+          value={totalAppointments} 
+          bgClass="bg-[#f0fbf9]" 
+          borderClass="border-[#006b5f]/10" 
+        />
+        <StatCard 
+          icon={<IndianRupee className="h-6 w-6 text-primary" />} 
+          label="Est. Revenue" 
+          value={`₹${estimatedRevenue.toLocaleString()}`} 
+          bgClass="bg-[#ebfcf9]" 
+          borderClass="border-primary/20" 
+        />
+        <StatCard 
+          icon={<Star className="h-6 w-6 text-amber-500 fill-amber-500" />} 
+          label="Avg Rating" 
+          value={clinicRating ? Number(clinicRating).toFixed(1) : 'N/A'} 
+          bgClass="bg-[#fffbeb]" 
+          borderClass="border-amber-500/20" 
+        />
+        <StatCard 
+          icon={<Users className="h-6 w-6 text-blue-500" />} 
+          label="Total Reviews" 
+          value={reviewCount} 
+          bgClass="bg-[#eff6ff]" 
+          borderClass="border-blue-500/20" 
+        />
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Daily Trend */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              Appointments (Last 14 Days)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={dailyData}>
-                <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-                <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                <Tooltip />
-                <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Appointments" />
+        
+        {/* Daily Trend Chart */}
+        <div className="lg:col-span-2 bg-white rounded-[24px] shadow-[0_2px_15px_-5px_rgba(0,0,0,0.05)] border border-slate-100 p-6 md:p-8">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-10 h-10 rounded-xl bg-[#f8fbfa] flex items-center justify-center border border-slate-50">
+               <Activity className="h-5 w-5 text-slate-900" />
+            </div>
+            <div>
+              <h3 className="text-[17px] font-black text-slate-900 tracking-tight">Daily Appointments</h3>
+              <p className="text-[13px] text-slate-500 font-medium">Trends over the last 14 days</p>
+            </div>
+          </div>
+          
+          <div className="w-full h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={dailyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.6}/>
+                <XAxis 
+                  dataKey="label" 
+                  tick={{ fontSize: 12, fill: '#64748b', fontWeight: 600 }} 
+                  axisLine={false} 
+                  tickLine={false}
+                  dy={10}
+                />
+                <YAxis 
+                  allowDecimals={false} 
+                  tick={{ fontSize: 12, fill: '#64748b', fontWeight: 600 }} 
+                  axisLine={false} 
+                  tickLine={false}
+                />
+                <Tooltip 
+                  cursor={{ fill: '#f8fafc' }}
+                  contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', padding: '12px 20px' }}
+                  labelStyle={{ fontWeight: 800, color: '#0f172a', marginBottom: '4px' }}
+                  itemStyle={{ fontWeight: 600, color: '#006b5f' }}
+                />
+                <Bar 
+                  dataKey="count" 
+                  fill="#006b5f" 
+                  radius={[6, 6, 0, 0]} 
+                  name="Appointments"
+                  barSize={32}
+                  animationDuration={1500}
+                />
               </BarChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Status Distribution */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Status Breakdown</CardTitle>
-          </CardHeader>
-          <CardContent>
+        {/* Status Distribution Chart */}
+        <div className="bg-white rounded-[24px] shadow-[0_2px_15px_-5px_rgba(0,0,0,0.05)] border border-slate-100 p-6 md:p-8 flex flex-col">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-[#f8fbfa] flex items-center justify-center border border-slate-50">
+               <PieIcon className="h-5 w-5 text-slate-900" />
+            </div>
+            <div>
+              <h3 className="text-[17px] font-black text-slate-900 tracking-tight">Status Breakdown</h3>
+              <p className="text-[13px] text-slate-500 font-medium">All-time completion rates</p>
+            </div>
+          </div>
+          
+          <div className="flex-1 flex flex-col items-center justify-center min-h-[300px]">
             {statusData.length > 0 ? (
               <>
-                <ResponsiveContainer width="100%" height={180}>
-                  <PieChart>
-                    <Pie data={statusData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} innerRadius={40}>
-                      {statusData.map((entry, i) => (
-                        <Cell key={i} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="flex flex-wrap justify-center gap-3 mt-2">
+                <div className="w-full h-[220px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie 
+                        data={statusData} 
+                        dataKey="value" 
+                        nameKey="name" 
+                        cx="50%" cy="50%" 
+                        outerRadius={90} 
+                        innerRadius={65} // Donut style
+                        paddingAngle={4}
+                        stroke="none"
+                        animationDuration={1500}
+                      >
+                        {statusData.map((entry, i) => (
+                          <Cell key={i} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}
+                        itemStyle={{ fontWeight: 700 }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                
+                {/* Custom Legend */}
+                <div className="w-full mt-6 space-y-3 px-2">
                   {statusData.map((d) => (
-                    <div key={d.name} className="flex items-center gap-1.5 text-xs">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: d.color }} />
-                      <span>{d.name}: {d.value}</span>
+                    <div key={d.name} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                         <div className="w-3.5 h-3.5 rounded-full shadow-sm" style={{ backgroundColor: d.color }} />
+                         <span className="text-[14px] font-bold text-slate-700">{d.name}</span>
+                      </div>
+                      <span className="text-[15px] font-black text-slate-900">{d.value}</span>
                     </div>
                   ))}
                 </div>
               </>
             ) : (
-              <p className="text-sm text-muted-foreground text-center py-8">No data yet</p>
+              <div className="flex flex-col items-center justify-center opacity-50 space-y-3">
+                 <PieIcon className="w-12 h-12 text-slate-300" strokeWidth={1} />
+                 <p className="text-[14px] font-bold text-slate-400">No appointment data yet</p>
+              </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-function StatCard({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: string | number; color: string }) {
-  const colorMap: Record<string, string> = {
-    primary: 'bg-primary/10 text-primary',
-    warning: 'bg-warning/10 text-warning',
-    info: 'bg-info/10 text-info',
-    success: 'bg-success/10 text-success',
-  };
+function StatCard({ icon, label, value, bgClass, borderClass }: { icon: React.ReactNode; label: string; value: string | number; bgClass: string; borderClass: string }) {
   return (
-    <Card>
-      <CardContent className="p-4 flex items-center gap-4">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${colorMap[color]}`}>
-          {icon}
-        </div>
-        <div>
-          <p className="text-2xl font-bold">{value}</p>
-          <p className="text-sm text-muted-foreground">{label}</p>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="bg-white rounded-[24px] shadow-[0_2px_15px_-5px_rgba(0,0,0,0.05)] border border-slate-100 p-6 flex flex-col justify-center relative overflow-hidden group hover:-translate-y-1 transition-transform">
+      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-5 border ${borderClass} ${bgClass} group-hover:scale-110 transition-transform`}>
+        {icon}
+      </div>
+      <h4 className="text-[13px] font-extrabold text-slate-500 uppercase tracking-widest mb-1">{label}</h4>
+      <div className="flex items-baseline gap-1 mt-1">
+        <span className="text-[28px] font-black text-slate-900 leading-none">{value}</span>
+      </div>
+    </div>
   );
 }
