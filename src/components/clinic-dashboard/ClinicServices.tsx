@@ -212,12 +212,7 @@ export function ClinicServices({ clinic, onUpdateClinic }: Props) {
               </div>
             </div>
             
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Button onClick={openClinicEdit} className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-sm font-bold rounded-xl px-5 transition-colors">
-                <Edit2 className="w-4 h-4 mr-2" />
-                Edit Profile
-              </Button>
-            </div>
+            
           </div>
         </div>
 

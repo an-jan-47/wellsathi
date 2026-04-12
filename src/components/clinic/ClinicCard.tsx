@@ -103,16 +103,16 @@ function VerifiedBadge({ size = 'sm' }: { size?: 'sm' | 'xs' }) {
       : 'gap-1.5 px-2 py-0.5 text-[10px]';
   return (
     <div
-      className={`flex items-center rounded-md bg-emerald-50 border border-emerald-100/60 ${cls}`}
+      className={`flex items-center rounded-md bg-primary/10 border border-primary/20 ${cls}`}
     >
       <CheckCircle2
         className={
           size === 'xs'
-            ? 'w-2.5 h-2.5 text-emerald-600'
-            : 'w-3 h-3 text-emerald-600'
+            ? 'w-2.5 h-2.5 text-primary'
+            : 'w-3 h-3 text-primary'
         }
       />
-      <span className="font-bold text-emerald-700 uppercase tracking-wider leading-none">
+      <span className="font-bold text-primary uppercase tracking-wider leading-none">
         Verified
       </span>
     </div>

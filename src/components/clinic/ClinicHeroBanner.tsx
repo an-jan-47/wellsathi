@@ -46,7 +46,7 @@ export function ClinicHeroBanner({ clinic }: Props) {
       <div className="absolute bottom-0 inset-x-0 z-10 p-5 md:p-6">
         {/* Badges */}
         <div className="flex items-center gap-2 mb-2">
-          <div className="flex items-center gap-1 px-2 py-0.5 bg-emerald-500/90 backdrop-blur-sm rounded-md">
+          <div className="flex items-center gap-1 px-2 py-0.5 bg-primary/90 backdrop-blur-sm rounded-md">
             <CheckCircle2 className="h-3 w-3 text-white" />
             <span className="text-[9px] font-black text-white uppercase tracking-widest">Verified Clinic</span>
           </div>

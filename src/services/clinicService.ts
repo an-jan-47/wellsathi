@@ -94,9 +94,10 @@ export async function getClinicByOwner(ownerId: string): Promise<Clinic | null> 
     .from('clinics')
     .select('*')
     .eq('owner_id', ownerId)
-    .maybeSingle();
+    .order('created_at', { ascending: false })
+    .limit(1);
   if (error) throw error;
-  return data as Clinic | null;
+  return data && data.length > 0 ? (data[0] as Clinic) : null;
 }
 
 /**

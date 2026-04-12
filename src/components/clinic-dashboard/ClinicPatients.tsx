@@ -26,14 +26,14 @@ type PatientForm = z.infer<typeof patientSchema>;
 
 const STATUS_BADGES: Record<string, string> = {
   'new': 'bg-slate-100 text-slate-600',
-  'follow_up': 'bg-blue-100 text-blue-600',
-  'recovered': 'bg-emerald-100 text-emerald-600',
+  'follow_up': 'bg-primarylue-100 text-blue-600',
+  'recovered': 'bg-primary/10 text-primary',
   'critical': 'bg-red-100 text-red-600',
   'in_treatment': 'bg-purple-100 text-purple-600'
 };
 
 const getAvatarColor = (name: string) => {
-  const COLORS = ['bg-emerald-100 text-emerald-600', 'bg-blue-100 text-blue-600', 'bg-amber-100 text-amber-600', 'bg-rose-100 text-rose-600', 'bg-purple-100 text-purple-600'];
+  const COLORS = ['bg-primary/10 text-primary', 'bg-primarylue-100 text-blue-600', 'bg-amber-100 text-amber-600', 'bg-rose-100 text-rose-600', 'bg-purple-100 text-purple-600'];
   let hash = 0;
   for (let i = 0; i < (name || '').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
   return COLORS[Math.abs(hash) % COLORS.length];

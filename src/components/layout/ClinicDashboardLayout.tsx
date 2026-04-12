@@ -1,5 +1,8 @@
 import { ReactNode, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '@/stores/authStore';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import {
   LayoutDashboard,
   CalendarCheck,
@@ -17,7 +20,8 @@ import {
   Menu,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  LogOut
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -33,8 +37,20 @@ interface ClinicDashboardLayoutProps {
 
 export function ClinicDashboardLayout({ children, activeTab, onTabChange, clinic, user }: ClinicDashboardLayoutProps) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { signOut } = useAuthStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      queryClient.clear();
+      navigate('/auth', { replace: true });
+    } catch {
+      toast.error('Failed to sign out. Please try again.');
+    }
+  };
 
   const navItems = [
     { id: 'overview' as Tab, label: 'Overview', icon: LayoutDashboard },
@@ -168,6 +184,13 @@ export function ClinicDashboardLayout({ children, activeTab, onTabChange, clinic
               <span className="sm:hidden">Add</span>
             </Button>
             
+            <button 
+              title="Logout"
+              onClick={handleLogout}
+              className="p-2 ml-1 text-slate-400 hover:bg-slate-50 hover:text-rose-500 rounded-full transition-colors relative"
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
           </div>
         </header>
 

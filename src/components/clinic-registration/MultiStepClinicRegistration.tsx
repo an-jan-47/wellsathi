@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Building2, CheckCircle2, Stethoscope, FileCheck, Users } from 'lucide-react';
+import { ArrowLeft, Building2, CheckCircle2, Stethoscope, FileCheck, Users, MailCheck } from 'lucide-react';
 import { ProgressSteps } from './ProgressSteps';
 import { StepUserAccount } from './StepUserAccount';
 import { StepClinicDetails } from './StepClinicDetails';
@@ -19,7 +19,7 @@ const BENEFITS = [
 export function MultiStepClinicRegistration() {
   const {
     currentStep, steps, formData, userId, isSubmitting, isSuccess,
-    isLoggedIn, handleUserAccountSubmit, handleClinicDetailsSubmit,
+    isLoggedIn, requiresEmailVerification, handleUserAccountSubmit, handleClinicDetailsSubmit,
     handleDoctorsServicesSubmit, handleCertificatesSubmit, handleFinalSubmit, goBack,
   } = useClinicRegistration();
 
@@ -75,31 +75,48 @@ export function MultiStepClinicRegistration() {
 
             {/* Form card */}
             <div className="bg-white rounded-[28px] border border-slate-100 shadow-sm p-8 md:p-10">
-              {currentStep === 1 && !isLoggedIn && (
-                <StepUserAccount data={formData} onNext={handleUserAccountSubmit} />
-              )}
-              {currentStep === 2 && userId && (
-                <StepClinicDetails data={formData} userId={userId} onNext={handleClinicDetailsSubmit} onBack={goBack} />
-              )}
-              {currentStep === 3 && (
-                <StepDoctorsServices data={formData} onNext={handleDoctorsServicesSubmit} onBack={goBack} />
-              )}
-              {currentStep === 4 && userId && (
-                <StepCertificates data={formData} userId={userId} onNext={handleCertificatesSubmit} onBack={goBack} />
-              )}
-              {currentStep === 5 && (
-                <StepConfirmation
-                  data={formData as ClinicRegistrationData}
-                  isSubmitting={isSubmitting}
-                  isSuccess={isSuccess}
-                  onBack={goBack}
-                  onSubmit={handleFinalSubmit}
-                />
+              {requiresEmailVerification ? (
+                <div className="text-center py-10 animate-fade-in">
+                  <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-primary/20">
+                    <MailCheck className="h-10 w-10 text-primary" />
+                  </div>
+                  <h2 className="text-[28px] font-black text-slate-900 mb-2">Check Your Email</h2>
+                  <p className="text-slate-500 font-medium mb-6">
+                    We've sent a verification link to your email address. Please click the link to verify your account before continuing.
+                  </p>
+                  <p className="text-[13px] text-primary font-bold mb-6">
+                    (You can safely close this tab and continue straight from the email link)
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {currentStep === 1 && !isLoggedIn && (
+                    <StepUserAccount data={formData} onNext={handleUserAccountSubmit} />
+                  )}
+                  {currentStep === 2 && userId && (
+                    <StepClinicDetails data={formData} userId={userId} onNext={handleClinicDetailsSubmit} onBack={goBack} />
+                  )}
+                  {currentStep === 3 && (
+                    <StepDoctorsServices data={formData} onNext={handleDoctorsServicesSubmit} onBack={goBack} />
+                  )}
+                  {currentStep === 4 && userId && (
+                    <StepCertificates data={formData} userId={userId} onNext={handleCertificatesSubmit} onBack={goBack} />
+                  )}
+                  {currentStep === 5 && (
+                    <StepConfirmation
+                      data={formData as ClinicRegistrationData}
+                      isSubmitting={isSubmitting}
+                      isSuccess={isSuccess}
+                      onBack={goBack}
+                      onSubmit={handleFinalSubmit}
+                    />
+                  )}
+                </>
               )}
             </div>
 
             {/* Login link */}
-            {currentStep === 1 && !isLoggedIn && (
+            {currentStep === 1 && !isLoggedIn && !requiresEmailVerification && (
               <p className="text-center text-[13px] font-medium text-slate-400 mt-6">
                 Already have an account?{' '}
                 <Link to="/auth" className="text-primary font-bold hover:underline">Sign in</Link>

@@ -80,7 +80,7 @@ export function ClinicAnalytics({ clinicId, clinicFees, clinicRating }: Props) {
   const estimatedRevenue = confirmedCount * clinicFees;
 
   const statusData = [
-    { name: 'Confirmed', value: confirmedCount, color: '#006b5f' }, // primary brand green
+    { name: 'Confirmed', value: confirmedCount, color: 'hsl(var(--primary))' }, // primary brand teal
     { name: 'Pending', value: pendingCount, color: '#f59e0b' },   // amber
     { name: 'Cancelled', value: cancelledCount, color: '#f43f5e' }, // rose/destructive
   ].filter(d => d.value > 0);
@@ -162,7 +162,7 @@ export function ClinicAnalytics({ clinicId, clinicFees, clinicRating }: Props) {
                   cursor={{ fill: '#f8fafc' }}
                   contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', padding: '12px 20px' }}
                   labelStyle={{ fontWeight: 800, color: '#0f172a', marginBottom: '4px' }}
-                  itemStyle={{ fontWeight: 600, color: '#006b5f' }}
+                  itemStyle={{ fontWeight: 600, color: 'hsl(var(--primary))' }}
                 />
                 <Bar 
                   dataKey="count" 

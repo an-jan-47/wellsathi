@@ -213,7 +213,7 @@ function AppointmentCard({ appointment, isPast = false, onCancel, onReviewDone, 
   const canReview = isPast && appointment.status === 'confirmed';
 
   const statusConfig = {
-    confirmed: { label: 'CONFIRMED', cls: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
+    confirmed: { label: 'CONFIRMED', cls: 'bg-primary/10 text-primary border-primary/20' },
     pending: { label: 'PENDING APPROVAL', cls: 'bg-amber-50 text-amber-600 border-amber-100' },
     cancelled: { label: 'CANCELLED', cls: 'bg-red-50 text-red-500 border-red-100' },
   }[appointment.status] ?? { label: appointment.status, cls: 'bg-slate-100 text-slate-500 border-slate-100' };

@@ -36,6 +36,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         set({ session, user: session?.user ?? null });
         
         if (session?.user) {
+          // Seamlessly resume clinic registration if they just verified their email
+          if (event === 'SIGNED_IN' && localStorage.getItem('resume_clinic_registration') === 'true') {
+            localStorage.removeItem('resume_clinic_registration');
+            window.location.href = '/register-clinic';
+            return;
+          }
+
           setTimeout(() => {
             get().fetchUserData(session.user.id);
           }, 0);

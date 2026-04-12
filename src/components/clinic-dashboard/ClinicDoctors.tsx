@@ -203,7 +203,7 @@ export function ClinicDoctors({ clinicId }: Props) {
   }
 
   return (
-    <div className="space-y-8 pb-10">
+    <div className="space-y-8 pb-10 animate-in fade-in duration-500 max-w-6xl mx-auto">
       
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 pl-1">
@@ -304,7 +304,7 @@ export function ClinicDoctors({ clinicId }: Props) {
                     </>
                   )}
                   {form.previewUrl && (
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute inset-0 bg-primarylack/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                       <Upload className="w-6 h-6 text-white" />
                     </div>
                   )}

@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuthStore } from '@/stores/authStore';
+import { useQueryClient } from '@tanstack/react-query';
 import type { 
   ClinicRegistrationData, 
   UserAccountData, 
@@ -20,11 +21,14 @@ const STEPS = [
 
 export function useClinicRegistration() {
   const { user, profile } = useAuthStore();
+  const queryClient = useQueryClient();
   const isLoggedIn = !!user;
   const [currentStep, setCurrentStep] = useState(isLoggedIn ? 2 : 1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [userId, setUserId] = useState<string | null>(user?.id ?? null);
+
+  const [requiresEmailVerification, setRequiresEmailVerification] = useState(false);
 
   // If user logs in while on step 1, auto-advance
   useEffect(() => {
@@ -38,7 +42,7 @@ export function useClinicRegistration() {
       }));
       setCurrentStep(2);
     }
-  }, [user, profile]);
+  }, [user, profile, currentStep]);
   
   // Form data across all steps
   const [formData, setFormData] = useState<Partial<ClinicRegistrationData>>({
@@ -67,7 +71,7 @@ export function useClinicRegistration() {
         email: data.email,
         password: data.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${window.location.origin}/register-clinic`,
           data: {
             name: data.ownerName,
             phone: data.phone,
@@ -77,17 +81,30 @@ export function useClinicRegistration() {
       });
 
       if (authError) {
-        throw authError;
+        throw authError; // This throws on existing user, weak pwd, etc.
       }
 
       if (!authData.user) {
         throw new Error('Failed to create account');
       }
 
-      // Store user ID for file uploads
+      if (!authData.session) {
+        // Email verification is required before proceeding.
+        // Store intent in localStorage so we can auto-redirect them back here when they click the email link,
+        // bypassing any Supabase strict Redirect URL whitelist limitations.
+        localStorage.setItem('resume_clinic_registration', 'true');
+        
+        setRequiresEmailVerification(true);
+        toast({
+          title: 'Verification Link Sent',
+          description: 'Please check your email to verify your account before continuing.',
+        });
+        return; // Halt here 
+      }
+
+      // Normal flow (if email verification is not required)
       setUserId(authData.user.id);
 
-      // Update form data and move to next step
       setFormData(prev => ({
         ...prev,
         ownerName: data.ownerName,
@@ -100,7 +117,7 @@ export function useClinicRegistration() {
       
       toast({
         title: 'Account Created',
-        description: 'Please check your email to verify your account.',
+        description: 'You can now set up your clinic profile.',
       });
     } catch (error) {
       console.error('Registration error:', error);
@@ -153,10 +170,13 @@ export function useClinicRegistration() {
   }, []);
 
   const handleFinalSubmit = useCallback(async () => {
-    if (!userId) {
+    // Check if session exists and is valid before submission
+    const { data: sessionData } = await supabase.auth.getSession();
+    
+    if (!userId || !sessionData.session) {
       toast({
-        title: 'Error',
-        description: 'Session expired. Please try again.',
+        title: 'Session Expired',
+        description: 'Please log in again to complete your registration.',
         variant: 'destructive',
       });
       return;
@@ -185,7 +205,10 @@ export function useClinicRegistration() {
 
       // Call secure Edge Function for transaction-like inserting
       const { data, error: functionError } = await supabase.functions.invoke('register-clinic', {
-        body: payload
+        body: payload,
+        headers: {
+          Authorization: `Bearer ${sessionData.session.access_token}`
+        }
       });
 
       if (functionError) {
@@ -212,6 +235,9 @@ export function useClinicRegistration() {
       if (userId) {
         await useAuthStore.getState().fetchUserData(userId);
       }
+      
+      // Invalidate 'clinics' query cache so the dashboard refetches instead of using stale 'null'
+      queryClient.invalidateQueries({ queryKey: ['clinics'] });
       
       toast({
         title: 'Registration Complete!',
@@ -242,6 +268,7 @@ export function useClinicRegistration() {
     isSubmitting,
     isSuccess,
     isLoggedIn,
+    requiresEmailVerification,
     handleUserAccountSubmit,
     handleClinicDetailsSubmit,
     handleDoctorsServicesSubmit,

@@ -42,13 +42,16 @@ export function StepConfirmation({ data, isSubmitting, isSuccess, onBack, onSubm
   useEffect(() => {
     if (!isSuccess) return;
     const timer = setInterval(() => {
-      setCountdown(prev => {
-        if (prev <= 1) { clearInterval(timer); navigate('/dashboard/clinic'); return 0; }
-        return prev - 1;
-      });
+      setCountdown(prev => prev - 1);
     }, 1000);
     return () => clearInterval(timer);
-  }, [isSuccess, navigate]);
+  }, [isSuccess]);
+
+  useEffect(() => {
+    if (isSuccess && countdown <= 0) {
+      navigate('/dashboard/clinic');
+    }
+  }, [isSuccess, countdown, navigate]);
 
   if (isSuccess) {
     return (

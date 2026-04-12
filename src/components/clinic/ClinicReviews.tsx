@@ -15,7 +15,7 @@ interface Props {
 }
 
 const getAvatarColor = (name: string) => {
-  const COLORS = ['bg-emerald-100 text-emerald-600', 'bg-blue-100 text-blue-600', 'bg-amber-100 text-amber-600', 'bg-rose-100 text-rose-600', 'bg-purple-100 text-purple-600'];
+  const COLORS = ['bg-primary/10 text-primary', 'bg-primarylue-100 text-blue-600', 'bg-amber-100 text-amber-600', 'bg-rose-100 text-rose-600', 'bg-purple-100 text-purple-600'];
   let hash = 0;
   for (let i = 0; i < (name || '').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
   return COLORS[Math.abs(hash) % COLORS.length];
@@ -133,9 +133,9 @@ export function ClinicReviews({ clinicId }: Props) {
           <h3 className="text-[32px] font-black text-slate-900 mt-0.5 z-10">{Number(stats?.positive_sentiment_percent || 0).toFixed(0)}%</h3>
           <p className="text-[10px] font-medium text-blue-500 mt-auto z-10">Aggregate % of 4+ Stars</p>
           <div className="absolute right-0 bottom-0 flex items-end gap-1 opacity-[0.03] pointer-events-none p-3">
-            <div className="w-5 h-10 bg-blue-900 rounded-t-sm" />
-            <div className="w-5 h-16 bg-blue-900 rounded-t-sm" />
-            <div className="w-5 h-24 bg-blue-900 rounded-t-sm" />
+            <div className="w-5 h-10 bg-primarylue-900 rounded-t-sm" />
+            <div className="w-5 h-16 bg-primarylue-900 rounded-t-sm" />
+            <div className="w-5 h-24 bg-primarylue-900 rounded-t-sm" />
           </div>
         </div>
 
@@ -290,7 +290,7 @@ export function ClinicReviews({ clinicId }: Props) {
                     {!review.reply && replyingTo !== review.id && (
                       <button
                         onClick={() => { setReplyingTo(review.id); setReplyText(''); }}
-                        className="flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-black text-white font-bold text-[12px] rounded-lg shadow-sm transition-all"
+                        className="flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-primarylack text-white font-bold text-[12px] rounded-lg shadow-sm transition-all"
                       >
                         + Reply
                       </button>
