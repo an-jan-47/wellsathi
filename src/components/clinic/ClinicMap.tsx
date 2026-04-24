@@ -83,7 +83,7 @@ export function ClinicMap({ clinics, className = '', onClinicClick }: Props) {
     : [28.6139, 77.2090];
 
   return (
-    <div className={`rounded-[20px] overflow-hidden ${className}`}>
+    <div className={`relative z-10 rounded-[20px] overflow-hidden ${className}`}>
       <MapContainer
         center={center}
         zoom={12}

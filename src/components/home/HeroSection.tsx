@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapPin, Search, Grid, Loader2, Navigation } from 'lucide-react';
 import { getUniqueCities } from '@/services/clinicService';
 import { SPECIALIZATIONS } from '@/constants';
+import { getSpecialtyIcon } from '@/constants/icons';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 
 export function HeroSection() {
@@ -120,7 +121,7 @@ export function HeroSection() {
   );
 
   return (
-    <section className="relative bg-white pt-24 pb-16 md:pt-32 md:pb-24 min-h-[520px] md:min-h-[600px]">
+    <section className="relative bg-white pt-20 pb-16 md:pt-32 md:pb-24 min-h-[480px] md:min-h-[600px]">
       {/* Subtle radial background matching the design */}
       <div className="absolute inset-0 top-0 w-full h-[600px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-100/50 via-white to-white pointer-events-none"></div>
 
@@ -175,7 +176,7 @@ export function HeroSection() {
               />
               {/* Location Dropdown */}
               {showLocationDropdown && (
-                <div className="absolute top-full left-0 mt-2 w-full bg-white rounded-xl shadow-xl border border-slate-100 max-h-60 overflow-y-auto z-50 py-2">
+                <div className="relative md:absolute top-full left-0 mt-2 w-full bg-white rounded-xl shadow-xl border border-slate-100 max-h-[60vh] md:max-h-60 overflow-y-auto z-50 py-2">
                   <div
                     className="flex items-center gap-2 px-4 py-3 hover:bg-slate-50 cursor-pointer text-primary text-sm font-medium border-b border-slate-50"
                     onClick={() => {
@@ -228,21 +229,25 @@ export function HeroSection() {
               />
               {/* Specialty Dropdown */}
               {showSpecialtyDropdown && (
-                <div className="absolute top-full left-0 mt-2 w-full bg-white rounded-xl shadow-xl border border-slate-100 max-h-60 overflow-y-auto z-50 py-2">
+                <div className="relative md:absolute top-full left-0 mt-2 w-full bg-white rounded-xl shadow-xl border border-slate-100 max-h-[60vh] md:max-h-60 overflow-y-auto z-50 py-2">
                   {filteredSpecialties.length > 0 ? (
-                    filteredSpecialties.map((spec) => (
-                      <div
-                        key={spec}
-                        className="px-4 py-2.5 hover:bg-slate-50 cursor-pointer text-slate-700 text-sm font-medium transition-colors"
-                        onClick={() => {
-                          setSpecialty(spec);
-                          setShowSpecialtyDropdown(false);
-                          setTimeout(() => handleSearch(), 100);
-                        }}
-                      >
-                        {spec}
-                      </div>
-                    ))
+                    filteredSpecialties.map((spec) => {
+                      const Icon = getSpecialtyIcon(spec);
+                      return (
+                        <div
+                          key={spec}
+                          className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 cursor-pointer text-slate-700 text-sm font-medium transition-colors"
+                          onClick={() => {
+                            setSpecialty(spec);
+                            setShowSpecialtyDropdown(false);
+                            setTimeout(() => handleSearch(), 100);
+                          }}
+                        >
+                          <Icon className="w-4 h-4 text-primary opacity-70" />
+                          {spec}
+                        </div>
+                      );
+                    })
                   ) : (
                     <div className="px-4 py-3 text-sm text-slate-400">
                       No specialties found.

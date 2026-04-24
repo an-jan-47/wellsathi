@@ -73,6 +73,8 @@ export default function ClinicProfile() {
     return allSlots.filter((slot) => slot.start_time > currentTimeStr);
   }, [allSlots, selectedDate]);
 
+  const hasNoSlotsForDay = allSlots.length === 0;
+
   const handleBooking = () => {
     const targetUrl = `/book/${clinic?.id}?doctor=${selectedDoctorId}&date=${selectedDate}${selectedSlot ? `&time=${selectedSlot}` : ''}`;
     if (!user) {
@@ -141,6 +143,7 @@ export default function ClinicProfile() {
                   onDateChange={setSelectedDate}
                   onSlotChange={setSelectedSlot}
                   onBooking={handleBooking}
+                  hasNoSlotsForDay={hasNoSlotsForDay}
                 />
               </div>
 
@@ -240,6 +243,7 @@ export default function ClinicProfile() {
                   onDateChange={setSelectedDate}
                   onSlotChange={setSelectedSlot}
                   onBooking={handleBooking}
+                  hasNoSlotsForDay={hasNoSlotsForDay}
                 />
 
                 {/* Map / Location Card */}
@@ -324,9 +328,9 @@ function LocationCard({ clinic }: { clinic: Clinic }) {
 
 /* ─── Booking Card ─── */
 function BookingCard({
-  doctors, selectedDoctorId, selectedDate, selectedSlot,
+  clinic, doctors, selectedDoctorId, selectedDate, selectedSlot,
   dateOptions, filteredSlots,
-  onDoctorChange, onDateChange, onSlotChange, onBooking,
+  onDoctorChange, onDateChange, onSlotChange, onBooking, hasNoSlotsForDay
 }: {
   clinic: Clinic;
   doctors: Doctor[];
@@ -339,6 +343,7 @@ function BookingCard({
   onDateChange: (d: string) => void;
   onSlotChange: (t: string) => void;
   onBooking: () => void;
+  hasNoSlotsForDay?: boolean;
 }) {
   const selectedDoctor = doctors.find((d) => d.id === selectedDoctorId);
 
@@ -403,7 +408,7 @@ function BookingCard({
         <div className="mb-5 min-h-[120px]">
           <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Available Slots</label>
           {filteredSlots.length > 0 ? (
-            <div className="grid grid-cols-2 gap-2 max-h-[160px] overflow-y-auto">
+            <div className="grid grid-cols-3 sm:grid-cols-2 gap-2 max-h-[160px] overflow-y-auto">
               {filteredSlots.map((slot) => {
                 const isSelected = selectedSlot === slot.start_time;
                 if (!slot.is_available) return null;
@@ -411,7 +416,7 @@ function BookingCard({
                   <button
                     key={slot.start_time}
                     onClick={() => onSlotChange(slot.start_time)}
-                    className={`py-2.5 rounded-xl text-[12px] font-bold border-2 transition-all ${
+                    className={`py-2 px-1 min-h-[44px] rounded-xl text-[12px] font-bold border-2 transition-all ${
                       isSelected
                         ? 'bg-primary border-primary text-white shadow-md shadow-primary/20'
                         : 'bg-white border-slate-200 text-slate-700 hover:border-primary/40 hover:text-primary'
@@ -425,7 +430,9 @@ function BookingCard({
           ) : (
             <div className="bg-slate-50 rounded-xl py-5 text-center border border-slate-100">
               <Calendar className="w-5 h-5 text-slate-300 mx-auto mb-1" />
-              <span className="text-[11px] font-bold text-slate-400">No slots available</span>
+              <span className="text-[11px] font-bold text-slate-400">
+                {hasNoSlotsForDay ? 'Doctor not available today' : 'No slots available'}
+              </span>
             </div>
           )}
         </div>

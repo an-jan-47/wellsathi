@@ -65,11 +65,39 @@ export async function searchClinics(filters: SearchFilters): Promise<Clinic[]> {
       break;
   }
 
-  const { data, error } = await queryBuilder;
+  let { data, error } = await queryBuilder;
   if (error) throw error;
   
-  // NOTE: If we wanted to parse total count, we'd change return signature. 
-  // For now we map it directly to Clinic[] smoothly so React Query doesn't break other components.
+  // Fuzzy search fallback if strict ilike returns nothing
+  if (data?.length === 0 && filters.query) {
+    let fallbackBuilder = supabase
+      .from('clinics')
+      .select('id, name, city, address, fees, rating, images, specializations, phone, is_approved')
+      .eq('is_approved', true);
+    
+    if (filters.location) fallbackBuilder = fallbackBuilder.ilike('city', `%${filters.location}%`);
+    if (filters.specialty) fallbackBuilder = fallbackBuilder.contains('specializations', [filters.specialty]);
+    if (filters.maxFees) fallbackBuilder = fallbackBuilder.lte('fees', parseInt(filters.maxFees));
+    if (filters.minRating) fallbackBuilder = fallbackBuilder.gte('rating', parseFloat(filters.minRating));
+    
+    const { data: fallbackData, error: fallbackError } = await fallbackBuilder;
+    if (!fallbackError && fallbackData) {
+      const queryTerms = filters.query.toLowerCase().split(/\s+/).filter(Boolean);
+      const matched = fallbackData.filter((c: any) => {
+        const searchSpace = `${c.name} ${c.city} ${c.address}`.toLowerCase();
+        return queryTerms.every(term => searchSpace.includes(term));
+      });
+      
+      // Basic local sorting based on sortBy
+      if (sortBy === 'fees_low') matched.sort((a, b) => (a.fees || 0) - (b.fees || 0));
+      else if (sortBy === 'fees_high') matched.sort((a, b) => (b.fees || 0) - (a.fees || 0));
+      else if (sortBy === 'name') matched.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      else matched.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+
+      data = matched.slice(from, to + 1) as any;
+    }
+  }
+
   return (data as Clinic[]) || [];
 }
 

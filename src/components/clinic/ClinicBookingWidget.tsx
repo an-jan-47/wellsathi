@@ -23,12 +23,13 @@ interface Props {
   onDateChange: (date: string) => void;
   onSlotChange: (time: string) => void;
   onBooking: () => void;
+  hasNoSlotsForDay?: boolean;
 }
 
 export function ClinicBookingWidget({
   clinic, doctors, selectedDoctorId, selectedDate, selectedSlot,
   dateOptions, filteredSlots,
-  onDoctorChange, onDateChange, onSlotChange, onBooking,
+  onDoctorChange, onDateChange, onSlotChange, onBooking, hasNoSlotsForDay
 }: Props) {
   const selectedDoctor = doctors.find((d) => d.id === selectedDoctorId);
 
@@ -122,7 +123,7 @@ export function ClinicBookingWidget({
             <div className="mb-5">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Available Slots</label>
               {filteredSlots.length > 0 ? (
-                <div className="grid grid-cols-2 gap-2 max-h-[180px] overflow-y-auto pr-0.5">
+                <div className="grid grid-cols-3 sm:grid-cols-2 gap-2 max-h-[180px] overflow-y-auto pr-0.5">
                   {filteredSlots.map((slot) => {
                     const isSelected = selectedSlot === slot.start_time;
                     if (!slot.is_available) return null;
@@ -130,7 +131,7 @@ export function ClinicBookingWidget({
                       <button
                         key={slot.start_time}
                         onClick={() => onSlotChange(slot.start_time)}
-                        className={`py-2.5 rounded-xl text-[12px] font-bold border-2 transition-all ${
+                        className={`py-2 px-1 min-h-[44px] rounded-xl text-[12px] font-bold border-2 transition-all ${
                           isSelected
                             ? 'bg-primary border-primary text-white shadow-md shadow-primary/20'
                             : 'bg-white border-slate-200 text-slate-700 hover:border-primary/40 hover:text-primary'
@@ -145,7 +146,9 @@ export function ClinicBookingWidget({
               ) : (
                 <div className="bg-slate-50 rounded-xl py-6 text-center border border-slate-100">
                   <Calendar className="w-6 h-6 text-slate-300 mx-auto mb-1" />
-                  <span className="text-[12px] font-bold text-slate-400">No slots available</span>
+                  <span className="text-[12px] font-bold text-slate-400">
+                    {hasNoSlotsForDay ? 'Doctor not available today' : 'No slots available'}
+                  </span>
                 </div>
               )}
             </div>

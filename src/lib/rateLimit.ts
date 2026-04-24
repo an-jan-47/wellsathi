@@ -86,12 +86,12 @@ export function resetRateLimit(key: string): void {
  * Pre-configured rate limit presets for common actions.
  */
 export const RATE_LIMITS = {
-  /** Booking: max 5 attempts per minute */
-  BOOK_APPOINTMENT: { maxCalls: 5, windowMs: 60_000 },
-  /** Search: max 20 queries per minute */
-  SEARCH: { maxCalls: 20, windowMs: 60_000 },
-  /** Auth: max 5 attempts per 2 minutes */
-  AUTH: { maxCalls: 5, windowMs: 120_000 },
+  /** Booking: max 10 attempts per minute */
+  BOOK_APPOINTMENT: { maxCalls: 10, windowMs: 60_000 },
+  /** Search: max 50 queries per minute */
+  SEARCH: { maxCalls: 50, windowMs: 60_000 },
+  /** Auth: max 15 attempts per 2 minutes */
+  AUTH: { maxCalls: 15, windowMs: 120_000 },
   /** Review submit: max 3 per 5 minutes */
   REVIEW: { maxCalls: 3, windowMs: 300_000 },
   /** Status update: max 10 per minute */

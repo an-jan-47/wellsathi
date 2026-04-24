@@ -11,6 +11,7 @@ export function useSearchClinics(filters: SearchFilters) {
   return useQuery({
     queryKey: ['clinics', 'search', filters],
     queryFn: () => searchClinics(filters),
+    staleTime: 5 * 60 * 1000, // 5 minutes cache for search results
   });
 }
 

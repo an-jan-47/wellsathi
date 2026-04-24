@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { MapPin, Star, Calendar, CheckCircle2, IndianRupee } from 'lucide-react';
 import type { Clinic } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
+import { getSpecialtyIcon } from '@/constants/icons';
 
 interface ClinicCardProps {
   clinic: Clinic;
@@ -42,7 +43,9 @@ function NextAvailableSlot({ clinicId }: { clinicId: string }) {
         });
 
         if (!error && slots?.length) {
-          const availableSlot = (slots as any[]).find((s) => s.is_available);
+          const now = new Date();
+          const currentTimeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:00`;
+          const availableSlot = (slots as any[]).find((s) => s.is_available && s.start_time > currentTimeStr);
           if (availableSlot && !cancelled) {
             setNextSlot(`Today, ${formatTime(availableSlot.start_time)}`);
             return;
@@ -103,16 +106,16 @@ function VerifiedBadge({ size = 'sm' }: { size?: 'sm' | 'xs' }) {
       : 'gap-1.5 px-2 py-0.5 text-[10px]';
   return (
     <div
-      className={`flex items-center rounded-md bg-primary/10 border border-primary/20 ${cls}`}
+      className={`flex items-center rounded-md bg-[#2563eb] border border-[#1d4ed8] ${cls} shadow-sm`}
     >
       <CheckCircle2
         className={
           size === 'xs'
-            ? 'w-2.5 h-2.5 text-primary'
-            : 'w-3 h-3 text-primary'
+            ? 'w-2.5 h-2.5 text-white'
+            : 'w-3 h-3 text-white'
         }
       />
-      <span className="font-bold text-primary uppercase tracking-wider leading-none">
+      <span className="font-bold text-white uppercase tracking-wider leading-none">
         Verified
       </span>
     </div>
@@ -220,14 +223,18 @@ export function ClinicCard({ clinic, layout = 'horizontal' }: ClinicCardProps) {
             {/* Specialties */}
             {clinic.specializations && clinic.specializations.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mb-3">
-                {clinic.specializations.slice(0, 3).map((spec) => (
-                  <span
-                    key={spec}
-                    className="px-2.5 py-1 bg-slate-50 border border-slate-200/60 rounded-full text-[11px] font-semibold text-slate-600"
-                  >
-                    {spec}
-                  </span>
-                ))}
+                {clinic.specializations.slice(0, 3).map((spec) => {
+                  const Icon = getSpecialtyIcon(spec);
+                  return (
+                    <span
+                      key={spec}
+                      className="flex items-center gap-1 px-2.5 py-1 bg-slate-50 border border-slate-200/60 rounded-full text-[11px] font-semibold text-slate-600"
+                    >
+                      <Icon className="w-3 h-3 text-primary opacity-80" />
+                      {spec}
+                    </span>
+                  );
+                })}
                 {clinic.specializations.length > 3 && (
                   <span className="px-2.5 py-1 bg-slate-50 border border-slate-200/60 rounded-full text-[11px] font-semibold text-slate-500">
                     +{clinic.specializations.length - 3}

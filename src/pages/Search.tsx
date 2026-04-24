@@ -7,6 +7,7 @@ import { useSearchClinics } from '@/hooks/queries/useClinics';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { SPECIALIZATIONS } from '@/constants';
+import { getSpecialtyIcon } from '@/constants/icons';
 import { Search as SearchIcon, MapPin, SlidersHorizontal, Loader2, List, Map, Star, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import type { SortOption } from '@/constants';
@@ -150,24 +151,32 @@ export default function Search() {
                     <DropdownMenuItem onClick={() => updateParams({ specialty: '' })} className="font-bold text-[13px] rounded-xl cursor-pointer py-2 px-3">
                        Clear Specialty
                     </DropdownMenuItem>
-                    {SPECIALIZATIONS.map(spec => (
-                      <DropdownMenuItem key={spec} onClick={() => updateParams({ specialty: spec })} className="font-semibold text-[13px] rounded-xl cursor-pointer py-2 px-3 text-slate-700">
-                        {spec}
-                      </DropdownMenuItem>
-                    ))}
+                    {SPECIALIZATIONS.map(spec => {
+                      const Icon = getSpecialtyIcon(spec);
+                      return (
+                        <DropdownMenuItem key={spec} onClick={() => updateParams({ specialty: spec })} className="font-semibold text-[13px] rounded-xl cursor-pointer py-2 px-3 text-slate-700 flex items-center gap-2">
+                          <Icon className="w-3.5 h-3.5 text-primary opacity-70" />
+                          {spec}
+                        </DropdownMenuItem>
+                      );
+                    })}
                  </DropdownMenuContent>
                </DropdownMenu>
 
                {/* Quick Select Specialty Filters */}
-               {SPECIALIZATIONS.slice(0, 4).map(spec => (
-                 <button 
-                   key={spec} 
-                   onClick={() => updateParams({ specialty: spec === filters.specialty ? '' : spec })}
-                   className={`flex shrink-0 items-center px-4 py-2 rounded-full text-[13px] font-semibold border transition-colors ${filters.specialty === spec ? 'bg-[#E6F4F1] text-primary border-primary/20' : 'bg-[#F8F9FA] border-transparent text-slate-700 hover:bg-slate-100'}`}
-                 >
-                   {spec}
-                 </button>
-               ))}
+               {SPECIALIZATIONS.slice(0, 4).map(spec => {
+                 const Icon = getSpecialtyIcon(spec);
+                 return (
+                   <button 
+                     key={spec} 
+                     onClick={() => updateParams({ specialty: spec === filters.specialty ? '' : spec })}
+                     className={`flex shrink-0 items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-semibold border transition-colors ${filters.specialty === spec ? 'bg-[#E6F4F1] text-primary border-primary/20' : 'bg-[#F8F9FA] border-transparent text-slate-700 hover:bg-slate-100'}`}
+                   >
+                     <Icon className={`w-3.5 h-3.5 ${filters.specialty === spec ? 'text-primary' : 'text-slate-400'}`} />
+                     {spec}
+                   </button>
+                 );
+               })}
                
                {/* Functional Fee Filter */}
                <DropdownMenu>
