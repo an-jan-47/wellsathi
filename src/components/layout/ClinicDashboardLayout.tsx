@@ -65,7 +65,7 @@ export function ClinicDashboardLayout({ children, activeTab, onTabChange, clinic
   ];
 
   return (
-    <div className="min-h-screen flex bg-[#f8f9ff]">
+    <div className="min-h-screen flex bg-background dark:bg-background">
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div 
@@ -75,7 +75,7 @@ export function ClinicDashboardLayout({ children, activeTab, onTabChange, clinic
       )}
 
       {/* Sidebar Navigation */}
-      <aside className={`fixed h-screen ${isDesktopCollapsed ? 'w-20' : 'w-64'} left-0 top-0 bg-white border-r border-slate-100 flex flex-col p-4 space-y-2 z-50 transform transition-transform duration-300 lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed h-screen ${isDesktopCollapsed ? 'w-20' : 'w-64'} left-0 top-0 bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 flex flex-col p-4 space-y-2 z-50 transform transition-transform duration-300 lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="px-2 py-4 mb-4 flex justify-between items-center relative">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-lg flex-shrink-0">
@@ -83,7 +83,7 @@ export function ClinicDashboardLayout({ children, activeTab, onTabChange, clinic
             </div>
             {!isDesktopCollapsed && (
               <div>
-                <h1 className="text-lg font-black text-slate-900 leading-none truncate max-w-[130px]">{clinic?.name || 'Clinic'}</h1>
+                <h1 className="text-lg font-black text-slate-900 dark:text-white leading-none truncate max-w-[130px]">{clinic?.name || 'Clinic'}</h1>
                 <span className="text-[9px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-1.5 py-0.5 rounded mt-1 inline-block">
                   {clinic?.is_approved ? 'APPROVED STATUS' : 'PENDING'}
                 </span>
@@ -91,12 +91,12 @@ export function ClinicDashboardLayout({ children, activeTab, onTabChange, clinic
             )}
           </div>
           <button 
-            className="hidden lg:flex absolute -right-3 top-6 bg-white border border-slate-200 text-slate-400 hover:text-slate-600 rounded-full p-1 z-50" 
+            className="hidden lg:flex absolute -right-3 top-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 rounded-full p-1 z-50" 
             onClick={() => setIsDesktopCollapsed(!isDesktopCollapsed)}
           >
             {isDesktopCollapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
           </button>
-          <button className="lg:hidden text-slate-400 hover:text-slate-600" onClick={() => setIsMobileMenuOpen(false)}>
+          <button className="lg:hidden text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300" onClick={() => setIsMobileMenuOpen(false)}>
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -114,8 +114,8 @@ export function ClinicDashboardLayout({ children, activeTab, onTabChange, clinic
                 title={isDesktopCollapsed ? item.label : undefined}
                 className={`w-full flex items-center ${isDesktopCollapsed ? 'justify-center' : 'gap-3 px-4'} py-3 text-sm transition-all duration-300 ease-in-out ${
                   isActive
-                    ? 'font-bold bg-white text-primary shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] rounded-xl border border-slate-100'
-                    : 'font-medium text-slate-500 hover:text-primary hover:bg-slate-50 rounded-xl'
+                    ? 'font-bold bg-white dark:bg-slate-800 text-primary shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] dark:shadow-none rounded-xl border border-slate-100 dark:border-slate-700'
+                    : 'font-medium text-slate-500 dark:text-slate-400 hover:text-primary hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl'
                 }`}
               >
                 <item.icon className={`w-5 h-5 ${isActive ? 'text-primary' : ''} flex-shrink-0`} />
@@ -125,7 +125,7 @@ export function ClinicDashboardLayout({ children, activeTab, onTabChange, clinic
           })}
         </nav>
 
-        <div className="mt-auto pt-4 border-t border-slate-50">
+        <div className="mt-auto pt-4 border-t border-slate-50 dark:border-slate-800">
           <Button 
             onClick={() => { 
               onTabChange('services'); 
@@ -144,10 +144,10 @@ export function ClinicDashboardLayout({ children, activeTab, onTabChange, clinic
       {/* Main Content Area */}
       <div className={`flex-1 ${isDesktopCollapsed ? 'lg:ml-20' : 'lg:ml-64'} flex flex-col min-h-screen overflow-x-hidden transition-all duration-300`}>
         {/* TopNavBar */}
-        <header className="sticky top-0 z-30 bg-white shadow-sm flex items-center px-4 lg:px-8 py-3 h-16 border-b border-slate-100">
+        <header className="sticky top-0 z-30 bg-white dark:bg-slate-900 shadow-sm flex items-center px-4 lg:px-8 py-3 h-16 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-4 flex-1">
             <button 
-              className="lg:hidden p-1 text-slate-500 hover:bg-slate-50 rounded-md"
+              className="lg:hidden p-1 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md"
               onClick={() => setIsMobileMenuOpen(true)}
             >
               <Menu className="w-6 h-6" />
@@ -155,25 +155,25 @@ export function ClinicDashboardLayout({ children, activeTab, onTabChange, clinic
             <span className="text-xl font-bold text-primary tracking-wider hidden sm:block">WellSathi</span>
             
             <div className="relative w-full max-w-xs md:max-w-md lg:ml-6">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 w-4 h-4" />
               <input 
                 type="text" 
                 placeholder="Search data..." 
-                className="w-full bg-slate-50 border border-slate-100 rounded-full py-2 pl-9 pr-4 text-xs focus:ring-2 focus:ring-primary/20 outline-none transition-all" 
+                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-full py-2 pl-9 pr-4 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-primary/20 outline-none transition-all" 
               />
             </div>
           </div>
           
           <div className="flex items-center gap-2 sm:gap-4 ml-auto">
-            <button className="p-2 text-slate-400 hover:bg-slate-50 rounded-full transition-colors relative hidden sm:block">
+            <button className="p-2 text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-full transition-colors relative hidden sm:block">
               <Bell className="w-5 h-5" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-destructive rounded-full border-2 border-white"></span>
+              <span className="absolute top-2 right-2 w-2 h-2 bg-destructive rounded-full border-2 border-white dark:border-slate-900"></span>
             </button>
-            <button className="p-2 text-slate-400 hover:bg-slate-50 rounded-full transition-colors hidden sm:block">
+            <button className="p-2 text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-full transition-colors hidden sm:block">
               <HelpCircle className="w-5 h-5" />
             </button>
             
-            <div className="h-6 w-[1px] bg-slate-200 mx-1 hidden sm:block"></div>
+            <div className="h-6 w-[1px] bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block"></div>
             
             <Button 
               onClick={() => navigate(clinic?.id ? `/book/${clinic.id}` : '/book')}
@@ -187,7 +187,7 @@ export function ClinicDashboardLayout({ children, activeTab, onTabChange, clinic
             <button 
               title="Logout"
               onClick={handleLogout}
-              className="p-2 ml-1 text-slate-400 hover:bg-slate-50 hover:text-rose-500 rounded-full transition-colors relative"
+              className="p-2 ml-1 text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-rose-500 rounded-full transition-colors relative"
             >
               <LogOut className="w-5 h-5" />
             </button>

@@ -158,3 +158,75 @@ export function StatsCardSkeleton() {
     </div>
   );
 }
+
+// ─── Clinic Dashboard Skeletons ───────────────────────────────────────────────
+
+export function ClinicOverviewStatsSkeleton() {
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      {[...Array(4)].map((_, i) => (
+        <div key={i} className="bg-card border border-border rounded-[20px] p-6 space-y-3">
+          <Skeleton className="h-3 w-24" />
+          <Skeleton className="h-8 w-16" />
+          <Skeleton className="h-3 w-20" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function ClinicAppointmentRowSkeleton() {
+  return (
+    <div className="flex items-center gap-4 p-5 border border-border rounded-2xl">
+      <Skeleton className="h-10 w-10 rounded-full shrink-0" />
+      <div className="flex-1 space-y-2">
+        <Skeleton className="h-4 w-36" />
+        <Skeleton className="h-3 w-24" />
+      </div>
+      <Skeleton className="h-6 w-20 rounded-full" />
+      <Skeleton className="h-8 w-20 rounded-xl" />
+    </div>
+  );
+}
+
+export function ClinicDoctorCardSkeleton() {
+  return (
+    <div className="bg-card border border-border rounded-[24px] p-6 space-y-4">
+      <div className="flex items-start gap-3">
+        <Skeleton className="h-16 w-16 rounded-2xl shrink-0" />
+        <div className="flex-1 space-y-2 pt-1">
+          <Skeleton className="h-5 w-32" />
+          <Skeleton className="h-3 w-20" />
+        </div>
+      </div>
+      <Skeleton className="h-9 w-full rounded-xl" />
+    </div>
+  );
+}
+
+export function ClinicPatientRowSkeleton() {
+  return (
+    <div className="flex items-center gap-4 px-6 py-4 border-b border-border">
+      <Skeleton className="h-12 w-12 rounded-full shrink-0" />
+      <div className="flex-1 space-y-1.5">
+        <Skeleton className="h-4 w-32" />
+        <Skeleton className="h-3 w-24" />
+      </div>
+      <Skeleton className="h-4 w-24 hidden md:block" />
+      <Skeleton className="h-4 w-24 hidden md:block" />
+      <Skeleton className="h-6 w-16 rounded-lg" />
+    </div>
+  );
+}
+
+export function ClinicSlotRowSkeleton() {
+  return (
+    <div className="grid grid-cols-12 gap-4 px-8 py-5 border-b border-border items-center">
+      <Skeleton className="col-span-3 h-4 w-20" />
+      <Skeleton className="col-span-2 h-6 w-16 rounded-full" />
+      <Skeleton className="col-span-3 h-10 rounded-xl" />
+      <Skeleton className="col-span-3 h-10 rounded-xl" />
+      <Skeleton className="col-span-1 h-8 w-8 rounded-lg mx-auto" />
+    </div>
+  );
+}

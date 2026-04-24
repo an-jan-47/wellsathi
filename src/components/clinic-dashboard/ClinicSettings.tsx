@@ -5,7 +5,7 @@ import {
   Building2, Bell, ShieldCheck, Users, CreditCard, LogOut,
   MapPin, Mail, Phone, Lock, Eye, EyeOff,
   Loader2, Check, X, AlertTriangle, Sparkles, Construction,
-  IndianRupee, FileText, Stethoscope
+  IndianRupee, FileText, Stethoscope, Moon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useUpdateClinicProfile, useChangePassword } from '@/hooks/queries/useClinicSettings';
 import { FileUploadZone } from '@/components/clinic-registration/FileUploadZone';
 import { useFileUpload } from '@/hooks/useFileUpload';
+import { useTheme } from '@/contexts/ThemeContext';
 import type { Clinic } from '@/types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -127,6 +128,7 @@ export function ClinicSettings({ clinic, onUpdate }: Props) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, profile, signOut } = useAuthStore();
+  const { theme, toggleTheme } = useTheme();
 
   // Active section navigation
   const [activeSection, setActiveSection] = useState<SectionId>('profile');
@@ -297,11 +299,11 @@ export function ClinicSettings({ clinic, onUpdate }: Props) {
     <div className="animate-in fade-in duration-500 max-w-[1200px] mx-auto pb-28 relative min-h-[800px]">
 
       {/* Header */}
-      <div className="mb-10 pl-1 border-b border-slate-100 pb-8">
-        <h2 className="text-[28px] sm:text-[32px] font-black text-slate-900 tracking-tight leading-tight">
+      <div className="mb-10 pl-1 border-b border-slate-100 dark:border-slate-700 pb-8">
+        <h2 className="text-[28px] sm:text-[32px] font-black text-slate-900 dark:text-white tracking-tight leading-tight">
           Clinic Configuration
         </h2>
-        <p className="text-slate-500 mt-2 font-medium text-[15px]">
+        <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium text-[15px]">
           Manage your clinic details, security preferences, and administrative controls.
         </p>
       </div>
@@ -322,10 +324,10 @@ export function ClinicSettings({ clinic, onUpdate }: Props) {
               }}
               className={`flex items-center gap-3 px-5 py-4 rounded-2xl text-[14px] font-bold transition-all duration-300 text-left ${
                 item.destructive
-                  ? 'bg-transparent border-2 border-transparent text-rose-500 hover:bg-rose-50 hover:border-rose-100 mt-4'
+                  ? 'bg-transparent border-2 border-transparent text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:border-rose-100 mt-4'
                   : activeSection === item.id
-                  ? 'bg-white border-2 border-primary text-slate-900 shadow-[0_4px_20px_-5px_rgba(0,207,165,0.2)]'
-                  : 'bg-transparent border-2 border-transparent text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                  ? 'bg-white dark:bg-slate-700 border-2 border-primary text-slate-900 dark:text-white shadow-[0_4px_20px_-5px_rgba(0,207,165,0.2)]'
+                  : 'bg-transparent border-2 border-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-white'
               }`}
             >
               <item.icon className={`w-5 h-5 ${item.destructive ? 'text-rose-500' : ''}`} />
@@ -341,40 +343,24 @@ export function ClinicSettings({ clinic, onUpdate }: Props) {
           {activeSection === 'profile' && (
             <section className="animate-in fade-in duration-300">
               <div className="flex justify-between items-center mb-6 pl-1">
-                <h3 className="text-[17px] font-black text-slate-900 tracking-tight">Clinic Profile</h3>
+                <h3 className="text-[17px] font-black text-slate-900 dark:text-white tracking-tight">Clinic Profile</h3>
               </div>
 
-              <div className="bg-white rounded-[24px] shadow-[0_2px_15px_-5px_rgba(0,0,0,0.05)] border border-slate-100 p-8 space-y-6">
+              <div className="bg-white dark:bg-slate-800 rounded-[24px] shadow-[0_2px_15px_-5px_rgba(0,0,0,0.05)] dark:shadow-none border border-slate-100 dark:border-slate-700 p-8 space-y-6">
 
                 {/* Name + Specializations */}
-                <div className="flex flex-col sm:flex-row items-start gap-6 pb-6 border-b border-slate-50">
-                  {/* Clinic avatar */}
+                <div className="flex flex-col sm:flex-row items-start gap-6 pb-6 border-b border-slate-50 dark:border-slate-700">
                   <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/10 flex items-center justify-center flex-shrink-0">
                     <Building2 className="w-8 h-8 text-primary" />
                   </div>
                   <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
                     <div>
-                      <label className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block mb-2">
-                        Clinic Name
-                      </label>
-                      <Input
-                        value={form.name}
-                        onChange={(e) => handleFieldChange('name', e.target.value)}
-                       
-                        className="font-bold text-slate-900 rounded-xl bg-[#f8f9ff] border-slate-100"
-                      />
+                      <label className="text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-2">Clinic Name</label>
+                      <Input value={form.name} onChange={(e) => handleFieldChange('name', e.target.value)} className="font-bold text-slate-900 dark:text-white rounded-xl bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600 dark:placeholder:text-slate-500" />
                     </div>
                     <div>
-                      <label className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block mb-2">
-                        Specializations
-                      </label>
-                      <Input
-                        value={form.specializations}
-                        onChange={(e) => handleFieldChange('specializations', e.target.value)}
-                       
-                        placeholder="e.g. General Practice, Cardiology"
-                        className="font-bold text-slate-900 rounded-xl bg-[#f8f9ff] border-slate-100"
-                      />
+                      <label className="text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-2">Specializations</label>
+                      <Input value={form.specializations} onChange={(e) => handleFieldChange('specializations', e.target.value)} placeholder="e.g. General Practice, Cardiology" className="font-bold text-slate-900 dark:text-white rounded-xl bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600 dark:placeholder:text-slate-500" />
                     </div>
                   </div>
                 </div>
@@ -382,31 +368,18 @@ export function ClinicSettings({ clinic, onUpdate }: Props) {
                 {/* Contact Info */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
                   <div>
-                    <label className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block mb-2">
-                      Contact Email
-                    </label>
+                    <label className="text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-2">Contact Email</label>
                     <div className="relative">
                       <Mail className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                      <Input
-                        value={userEmail}
-                        disabled
-                        className="font-bold text-slate-900 rounded-xl pl-11 bg-[#f8f9ff] border-slate-100"
-                      />
+                      <Input value={userEmail} disabled className="font-bold text-slate-900 dark:text-slate-400 rounded-xl pl-11 bg-slate-50 dark:bg-slate-700/50 border-slate-200 dark:border-slate-600" />
                     </div>
-                    <p className="text-[11px] text-slate-400 mt-1.5 ml-1">Email is linked to your account</p>
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1.5 ml-1">Email is linked to your account</p>
                   </div>
                   <div>
-                    <label className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block mb-2">
-                      Phone Number
-                    </label>
+                    <label className="text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-2">Phone Number</label>
                     <div className="relative">
                       <Phone className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                      <Input
-                        value={form.phone}
-                        onChange={(e) => handleFieldChange('phone', e.target.value)}
-                       
-                        className="font-bold text-slate-900 rounded-xl pl-11 bg-[#f8f9ff] border-slate-100"
-                      />
+                      <Input value={form.phone} onChange={(e) => handleFieldChange('phone', e.target.value)} className="font-bold text-slate-900 dark:text-white rounded-xl pl-11 bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600 dark:placeholder:text-slate-500" />
                     </div>
                   </div>
                 </div>
@@ -414,80 +387,42 @@ export function ClinicSettings({ clinic, onUpdate }: Props) {
                 {/* Address + City */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
                   <div>
-                    <label className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block mb-2">
-                      Clinic Address
-                    </label>
+                    <label className="text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-2">Clinic Address</label>
                     <div className="relative">
                       <MapPin className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                      <Input
-                        value={form.address}
-                        onChange={(e) => handleFieldChange('address', e.target.value)}
-                       
-                        className="font-bold text-slate-900 rounded-xl pl-11 bg-[#f8f9ff] border-slate-100"
-                      />
+                      <Input value={form.address} onChange={(e) => handleFieldChange('address', e.target.value)} className="font-bold text-slate-900 dark:text-white rounded-xl pl-11 bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600 dark:placeholder:text-slate-500" />
                     </div>
                   </div>
                   <div>
-                    <label className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block mb-2">
-                      City
-                    </label>
-                    <Input
-                      value={form.city}
-                      onChange={(e) => handleFieldChange('city', e.target.value)}
-                     
-                      className="font-bold text-slate-900 rounded-xl bg-[#f8f9ff] border-slate-100"
-                    />
+                    <label className="text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-2">City</label>
+                    <Input value={form.city} onChange={(e) => handleFieldChange('city', e.target.value)} className="font-bold text-slate-900 dark:text-white rounded-xl bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600 dark:placeholder:text-slate-500" />
                   </div>
                 </div>
 
                 {/* Fees + Description */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
                   <div>
-                    <label className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block mb-2">
-                      Consultation Fee (₹)
-                    </label>
+                    <label className="text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-2">Consultation Fee (₹)</label>
                     <div className="relative">
                       <IndianRupee className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                      <Input
-                        type="number"
-                        min={0}
-                        value={form.fees}
-                        onChange={(e) => handleFieldChange('fees', parseInt(e.target.value) || 0)}
-                       
-                        className="font-bold text-slate-900 rounded-xl pl-11 bg-[#f8f9ff] border-slate-100"
-                      />
+                      <Input type="number" min={0} value={form.fees} onChange={(e) => handleFieldChange('fees', parseInt(e.target.value) || 0)} className="font-bold text-slate-900 dark:text-white rounded-xl pl-11 bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600" />
                     </div>
                   </div>
                   <div>
-                    <label className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block mb-2">
-                      Registration Number
-                    </label>
+                    <label className="text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-2">Registration Number</label>
                     <div className="relative">
                       <FileText className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                      <Input
-                        value={clinic.registration_number || '—'}
-                        disabled
-                        className="font-bold text-slate-900 rounded-xl pl-11 bg-[#f8f9ff] border-slate-100"
-                      />
+                      <Input value={clinic.registration_number || '—'} disabled className="font-bold text-slate-900 dark:text-slate-400 rounded-xl pl-11 bg-slate-50 dark:bg-slate-700/50 border-slate-200 dark:border-slate-600" />
                     </div>
                   </div>
                 </div>
 
                 <div className="pt-2">
-                  <label className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block mb-2">
-                    Description
-                  </label>
-                  <Textarea
-                    value={form.description}
-                    onChange={(e) => handleFieldChange('description', e.target.value)}
-                   
-                    rows={3}
-                    placeholder="Brief description about your clinic..."
-                    className="font-bold text-slate-900 rounded-xl bg-[#f8f9ff] border-slate-100 resize-none"
-                  />
+                  <label className="text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-2">Description</label>
+                  <Textarea value={form.description} onChange={(e) => handleFieldChange('description', e.target.value)} rows={3} placeholder="Brief description about your clinic..." className="font-bold text-slate-900 dark:text-white rounded-xl bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600 resize-none dark:placeholder:text-slate-500" />
                 </div>
 
-                <div className="pt-6 border-t border-slate-50">
+                <div className="pt-6 border-t border-slate-50 dark:border-slate-700">
                   <FileUploadZone
                     label="Clinic Photos"
                     description="Upload pictures of your clinic to show on your profile"
@@ -507,14 +442,30 @@ export function ClinicSettings({ clinic, onUpdate }: Props) {
           {activeSection === 'notifications' && (
             <section className="animate-in fade-in duration-300">
               <div className="flex justify-between items-center mb-6 pl-1">
-                <h3 className="text-[17px] font-black text-slate-900 tracking-tight">Notification Preferences</h3>
+                <h3 className="text-[17px] font-black text-slate-900 dark:text-white tracking-tight">Notification Preferences</h3>
               </div>
 
-              <div className="bg-white rounded-[24px] shadow-[0_2px_15px_-5px_rgba(0,0,0,0.05)] border border-slate-100 divide-y divide-slate-50">
+              <div className="bg-white dark:bg-slate-800 rounded-[24px] shadow-[0_2px_15px_-5px_rgba(0,0,0,0.05)] dark:shadow-none border border-slate-100 dark:border-slate-700 divide-y divide-slate-50 dark:divide-slate-700">
+                <div className="p-8 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-slate-900 dark:bg-slate-700 flex items-center justify-center">
+                      <Moon className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-extrabold text-[15px] text-slate-900 dark:text-white">Dark Mode</h4>
+                      <p className="text-[13px] font-medium text-slate-500 dark:text-slate-400 mt-1.5">Switch between light and dark theme</p>
+                    </div>
+                  </div>
+                  <ToggleSwitch
+                    enabled={theme === 'dark'}
+                    onToggle={toggleTheme}
+                  />
+                </div>
+
                 <div className="p-8 flex items-center justify-between">
                   <div>
-                    <h4 className="font-extrabold text-[15px] text-slate-900">Appointment Confirmations</h4>
-                    <p className="text-[13px] font-medium text-slate-500 mt-1.5">Send instant alerts for new bookings</p>
+                    <h4 className="font-extrabold text-[15px] text-slate-900 dark:text-white">Appointment Confirmations</h4>
+                    <p className="text-[13px] font-medium text-slate-500 dark:text-slate-400 mt-1.5">Send instant alerts for new bookings</p>
                   </div>
                   <ToggleSwitch
                     enabled={notifPrefs.appointmentConfirmations}
@@ -524,8 +475,8 @@ export function ClinicSettings({ clinic, onUpdate }: Props) {
 
                 <div className="p-8 flex items-center justify-between">
                   <div>
-                    <h4 className="font-extrabold text-[15px] text-slate-900">Patient Reports</h4>
-                    <p className="text-[13px] font-medium text-slate-500 mt-1.5">Daily summary of lab results and updates</p>
+                    <h4 className="font-extrabold text-[15px] text-slate-900 dark:text-white">Patient Reports</h4>
+                    <p className="text-[13px] font-medium text-slate-500 dark:text-slate-400 mt-1.5">Daily summary of lab results and updates</p>
                   </div>
                   <ToggleSwitch
                     enabled={notifPrefs.patientReports}
@@ -535,8 +486,8 @@ export function ClinicSettings({ clinic, onUpdate }: Props) {
 
                 <div className="p-8 flex items-center justify-between">
                   <div>
-                    <h4 className="font-extrabold text-[15px] text-slate-900">Billing Invoices</h4>
-                    <p className="text-[13px] font-medium text-slate-500 mt-1.5">Notify when payment cycles complete</p>
+                    <h4 className="font-extrabold text-[15px] text-slate-900 dark:text-white">Billing Invoices</h4>
+                    <p className="text-[13px] font-medium text-slate-500 dark:text-slate-400 mt-1.5">Notify when payment cycles complete</p>
                   </div>
                   <ToggleSwitch
                     enabled={notifPrefs.billingInvoices}
@@ -551,29 +502,24 @@ export function ClinicSettings({ clinic, onUpdate }: Props) {
           {activeSection === 'security' && (
             <section className="animate-in fade-in duration-300">
               <div className="flex justify-between items-center mb-6 pl-1">
-                <h3 className="text-[17px] font-black text-slate-900 tracking-tight">Security & Privacy</h3>
+                <h3 className="text-[17px] font-black text-slate-900 dark:text-white tracking-tight">Security & Privacy</h3>
               </div>
 
               <div className="space-y-6">
                 {/* Change Password Card */}
-                <div className="bg-[#f0fbf9] border border-primary/20 rounded-[24px] p-6 md:p-8">
+                <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-[24px] p-6 md:p-8">
                   <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
                     <div className="flex gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-white border border-primary/20 text-primary flex items-center justify-center shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-700 border border-primary/20 text-primary flex items-center justify-center shrink-0">
                         <Lock className="w-5 h-5" />
                       </div>
                       <div>
-                        <h4 className="font-extrabold text-[15px] text-slate-900">Change Password</h4>
-                        <p className="text-[13px] font-medium text-slate-600 mt-1 max-w-sm leading-relaxed">
-                          Update your account password for enhanced security.
-                        </p>
+                        <h4 className="font-extrabold text-[15px] text-slate-900 dark:text-white">Change Password</h4>
+                        <p className="text-[13px] font-medium text-slate-600 dark:text-slate-400 mt-1 max-w-sm leading-relaxed">Update your account password for enhanced security.</p>
                       </div>
                     </div>
                     {!showPasswordForm && (
-                      <button
-                        onClick={() => setShowPasswordForm(true)}
-                        className="px-5 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-[13px] rounded-xl shadow-sm whitespace-nowrap transition-colors"
-                      >
+                      <button onClick={() => setShowPasswordForm(true)} className="px-5 py-2.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold text-[13px] rounded-xl shadow-sm whitespace-nowrap transition-colors">
                         Change Password
                       </button>
                     )}
@@ -582,94 +528,47 @@ export function ClinicSettings({ clinic, onUpdate }: Props) {
                   {showPasswordForm && (
                     <div className="mt-6 pt-6 border-t border-primary/10 space-y-4 max-w-lg">
                       <div>
-                        <label className="text-[12px] font-extrabold text-slate-500 uppercase tracking-widest block mb-2">
-                          New Password
-                        </label>
+                        <label className="text-[12px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest block mb-2">New Password</label>
                         <div className="relative">
-                          <Input
-                            type={showPassword ? 'text' : 'password'}
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                            placeholder="Min. 6 characters"
-                            className="font-bold text-slate-900 rounded-xl bg-white border-slate-200 pr-11"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                          >
+                          <Input type={showPassword ? 'text' : 'password'} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Min. 6 characters" className="font-bold text-slate-900 dark:text-white rounded-xl bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 pr-11 dark:placeholder:text-slate-500" />
+                          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                             {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                           </button>
                         </div>
                       </div>
                       <div>
-                        <label className="text-[12px] font-extrabold text-slate-500 uppercase tracking-widest block mb-2">
-                          Confirm Password
-                        </label>
-                        <Input
-                          type={showPassword ? 'text' : 'password'}
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          placeholder="Re-enter password"
-                          className="font-bold text-slate-900 rounded-xl bg-white border-slate-200"
-                        />
+                        <label className="text-[12px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest block mb-2">Confirm Password</label>
+                        <Input type={showPassword ? 'text' : 'password'} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Re-enter password" className="font-bold text-slate-900 dark:text-white rounded-xl bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 dark:placeholder:text-slate-500" />
                       </div>
                       {newPassword && confirmPassword && newPassword !== confirmPassword && (
-                        <p className="text-[12px] font-bold text-rose-500 flex items-center gap-1">
-                          <X className="w-3 h-3" /> Passwords don't match
-                        </p>
+                        <p className="text-[12px] font-bold text-rose-500 flex items-center gap-1"><X className="w-3 h-3" /> Passwords don't match</p>
                       )}
                       <div className="flex gap-3 pt-2">
-                        <Button
-                          onClick={handleChangePassword}
-                          disabled={changePasswordMutation.isPending || !newPassword || !confirmPassword}
-                          className="px-6 py-3 bg-primary hover:bg-primary/90 text-white font-bold text-[13px] rounded-xl"
-                        >
-                          {changePasswordMutation.isPending ? (
-                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                          ) : (
-                            <Check className="w-4 h-4 mr-2" />
-                          )}
+                        <Button onClick={handleChangePassword} disabled={changePasswordMutation.isPending || !newPassword || !confirmPassword} className="px-6 py-3 bg-primary hover:bg-primary/90 text-white font-bold text-[13px] rounded-xl">
+                          {changePasswordMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Check className="w-4 h-4 mr-2" />}
                           Update Password
                         </Button>
-                        <Button
-                          variant="ghost"
-                          onClick={() => {
-                            setShowPasswordForm(false);
-                            setNewPassword('');
-                            setConfirmPassword('');
-                          }}
-                          className="px-4 font-bold text-[13px] text-slate-500"
-                        >
-                          Cancel
-                        </Button>
+                        <Button variant="ghost" onClick={() => { setShowPasswordForm(false); setNewPassword(''); setConfirmPassword(''); }} className="px-4 font-bold text-[13px] text-slate-500 dark:text-slate-400">Cancel</Button>
                       </div>
                     </div>
                   )}
                 </div>
 
                 {/* Session Info */}
-                <div className="bg-white rounded-[24px] shadow-[0_2px_15px_-5px_rgba(0,0,0,0.05)] border border-slate-100 p-6 md:p-8">
-                  <div className="flex gap-4 items-start border-b border-slate-100 pb-6 mb-6">
+                <div className="bg-white dark:bg-slate-800 rounded-[24px] shadow-[0_2px_15px_-5px_rgba(0,0,0,0.05)] dark:shadow-none border border-slate-100 dark:border-slate-700 p-6 md:p-8">
+                  <div className="flex gap-4 items-start border-b border-slate-100 dark:border-slate-700 pb-6 mb-6">
                     <Stethoscope className="w-5 h-5 text-slate-400 mt-0.5" />
                     <div>
-                      <h4 className="font-extrabold text-[15px] text-slate-900">Active Session</h4>
-                      <p className="text-[13px] font-medium text-slate-500 mt-1">Your currently active session details.</p>
+                      <h4 className="font-extrabold text-[15px] text-slate-900 dark:text-white">Active Session</h4>
+                      <p className="text-[13px] font-medium text-slate-500 dark:text-slate-400 mt-1">Your currently active session details.</p>
                     </div>
                   </div>
-
                   <div className="ml-9 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
-                        <div>
-                          <p className="text-[14px] font-bold text-slate-900">
-                            {userEmail}
-                          </p>
-                          <p className="text-[12px] font-bold text-slate-400 mt-1">
-                            Role: {profile?.role || 'clinic'} • Last sign-in: {lastSignIn}
-                          </p>
-                        </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
+                      <div>
+                        <p className="text-[14px] font-extrabold text-slate-900 dark:text-white">{userEmail}</p>
+                        <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">Role: clinic • Last sign-in: {lastSignIn}</p>
                       </div>
                     </div>
                   </div>
@@ -682,13 +581,10 @@ export function ClinicSettings({ clinic, onUpdate }: Props) {
           {activeSection === 'roles' && (
             <section className="animate-in fade-in duration-300">
               <div className="flex justify-between items-center mb-6 pl-1">
-                <h3 className="text-[17px] font-black text-slate-900 tracking-tight">User Roles & Access</h3>
+                <h3 className="text-[17px] font-black text-slate-900 dark:text-white tracking-tight">User Roles & Access</h3>
               </div>
-              <div className="bg-white rounded-[24px] shadow-[0_2px_15px_-5px_rgba(0,0,0,0.05)] border border-slate-100">
-                <ComingSoonPlaceholder
-                  title="Role Management"
-                  description="Invite team members, assign roles like Administrator or Practitioner, and manage access permissions for your clinic."
-                />
+              <div className="bg-white dark:bg-slate-800 rounded-[24px] shadow-[0_2px_15px_-5px_rgba(0,0,0,0.05)] dark:shadow-none border border-slate-100 dark:border-slate-700">
+                <ComingSoonPlaceholder title="Role Management" description="Invite team members, assign roles like Administrator or Practitioner, and manage access permissions for your clinic." />
               </div>
             </section>
           )}
@@ -697,13 +593,10 @@ export function ClinicSettings({ clinic, onUpdate }: Props) {
           {activeSection === 'billing' && (
             <section className="animate-in fade-in duration-300">
               <div className="flex justify-between items-center mb-6 pl-1">
-                <h3 className="text-[17px] font-black text-slate-900 tracking-tight">Billing & Subscription</h3>
+                <h3 className="text-[17px] font-black text-slate-900 dark:text-white tracking-tight">Billing & Subscription</h3>
               </div>
-              <div className="bg-white rounded-[24px] shadow-[0_2px_15px_-5px_rgba(0,0,0,0.05)] border border-slate-100">
-                <ComingSoonPlaceholder
-                  title="Billing Dashboard"
-                  description="View invoices, manage subscription plans, and track payment history — all in one place."
-                />
+              <div className="bg-white dark:bg-slate-800 rounded-[24px] shadow-[0_2px_15px_-5px_rgba(0,0,0,0.05)] dark:shadow-none border border-slate-100 dark:border-slate-700">
+                <ComingSoonPlaceholder title="Billing Dashboard" description="View invoices, manage subscription plans, and track payment history — all in one place." />
               </div>
             </section>
           )}
@@ -714,39 +607,18 @@ export function ClinicSettings({ clinic, onUpdate }: Props) {
       {/* ─── Logout Confirmation Modal ─────────────────────────────── */}
       {showLogoutConfirm && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-primarylack/30 backdrop-blur-sm"
-            onClick={() => !isLoggingOut && setShowLogoutConfirm(false)}
-          />
-          <div className="relative bg-white rounded-3xl shadow-2xl max-w-sm w-full p-8 animate-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => !isLoggingOut && setShowLogoutConfirm(false)} />
+          <div className="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl max-w-sm w-full p-8 animate-in zoom-in-95 duration-200">
             <div className="flex flex-col items-center text-center">
-              <div className="w-16 h-16 rounded-2xl bg-rose-50 flex items-center justify-center mb-5">
+              <div className="w-16 h-16 rounded-2xl bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center mb-5">
                 <AlertTriangle className="w-8 h-8 text-rose-500" />
               </div>
-              <h3 className="text-[20px] font-black text-slate-900 mb-2 tracking-tight">
-                Sign Out?
-              </h3>
-              <p className="text-[14px] font-medium text-slate-500 leading-relaxed mb-8">
-                You'll be signed out of your clinic dashboard. Any unsaved changes will be lost.
-              </p>
+              <h3 className="text-[20px] font-black text-slate-900 dark:text-white mb-2 tracking-tight">Sign Out?</h3>
+              <p className="text-[14px] font-medium text-slate-500 dark:text-slate-400 leading-relaxed mb-8">You'll be signed out of your clinic dashboard. Any unsaved changes will be lost.</p>
               <div className="flex gap-3 w-full">
-                <button
-                  onClick={() => setShowLogoutConfirm(false)}
-                  disabled={isLoggingOut}
-                  className="flex-1 px-5 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[14px] rounded-xl transition-colors disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleLogout}
-                  disabled={isLoggingOut}
-                  className="flex-1 px-5 py-3.5 bg-rose-500 hover:bg-rose-600 text-white font-bold text-[14px] rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {isLoggingOut ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <LogOut className="w-4 h-4" />
-                  )}
+                <button onClick={() => setShowLogoutConfirm(false)} disabled={isLoggingOut} className="flex-1 px-5 py-3.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold text-[14px] rounded-xl transition-colors disabled:opacity-50">Cancel</button>
+                <button onClick={handleLogout} disabled={isLoggingOut} className="flex-1 px-5 py-3.5 bg-rose-500 hover:bg-rose-600 text-white font-bold text-[14px] rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                  {isLoggingOut ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
                   Sign Out
                 </button>
               </div>
@@ -755,20 +627,11 @@ export function ClinicSettings({ clinic, onUpdate }: Props) {
         </div>
       )}
 
-      {/* ─── Floating Action Bar (profile section only, when dirty) ── */}
+      {/* ─── Floating Action Bar ── */}
       {activeSection === 'profile' && isDirty && (
-        <div className="fixed bottom-0 left-0 right-0 lg:left-64 bg-white/80 backdrop-blur-md border-t border-slate-200 p-4 px-6 md:px-12 flex items-center justify-end gap-4 z-40 shadow-[0_-10px_30px_rgba(0,0,0,0.02)] animate-in slide-in-from-bottom-4 duration-300">
-          <button
-            onClick={handleDiscardChanges}
-            className="px-6 py-3 font-bold text-[14px] text-slate-500 hover:text-slate-800 transition-colors"
-          >
-            Discard Changes
-          </button>
-          <button
-            onClick={handleSaveProfile}
-            disabled={updateProfileMutation.isPending}
-            className="px-8 py-3 bg-primary hover:bg-[#00ba94] text-white font-bold text-[14px] rounded-xl shadow-lg shadow-primary/30 transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2"
-          >
+        <div className="fixed bottom-0 left-0 right-0 lg:left-64 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-t border-slate-200 dark:border-slate-700 p-4 px-6 md:px-12 flex items-center justify-end gap-4 z-40 shadow-[0_-10px_30px_rgba(0,0,0,0.02)] animate-in slide-in-from-bottom-4 duration-300">
+          <button onClick={handleDiscardChanges} className="px-6 py-3 font-bold text-[14px] text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors">Discard Changes</button>
+          <button onClick={handleSaveProfile} disabled={updateProfileMutation.isPending} className="px-8 py-3 bg-primary hover:bg-[#00ba94] text-white font-bold text-[14px] rounded-xl shadow-lg shadow-primary/30 transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2">
             {updateProfileMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
             Save Configuration
           </button>

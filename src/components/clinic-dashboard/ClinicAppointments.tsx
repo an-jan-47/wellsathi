@@ -54,14 +54,14 @@ export function ClinicAppointments({ appointments, onUpdate, onViewSchedule, dat
   if (appointments.length === 0) {
     const displayDate = date ? format(new Date(date), "EEEE, MMMM do") : 'the selected date';
     return (
-      <div className="p-10 md:p-20 flex flex-col items-center justify-center text-center bg-[#f8fbfa] rounded-[24px] min-h-[450px]">
+      <div className="p-10 md:p-20 flex flex-col items-center justify-center text-center bg-[#f8fbfa] dark:bg-slate-800 rounded-[24px] min-h-[450px]">
         <div className="relative mb-8">
-          <div className="w-[120px] h-[120px] bg-[#edf6f5]/80 rounded-full flex items-center justify-center shadow-inner">
-            <CalendarX className="w-12 h-12 text-[#94a3b8]" strokeWidth={2} />
+          <div className="w-[120px] h-[120px] bg-[#edf6f5]/80 dark:bg-slate-700 rounded-full flex items-center justify-center shadow-inner">
+            <CalendarX className="w-12 h-12 text-[#94a3b8] dark:text-slate-400" strokeWidth={2} />
           </div>
         </div>
-        <h4 className="text-[22px] font-black text-slate-800 mb-3 tracking-tight">No appointments for this date</h4>
-        <p className="text-slate-500 max-w-sm mx-auto mb-10 text-[14px] leading-relaxed font-medium">
+        <h4 className="text-[22px] font-black text-slate-800 dark:text-white mb-3 tracking-tight">No appointments for this date</h4>
+        <p className="text-slate-500 dark:text-slate-400 max-w-sm mx-auto mb-10 text-[14px] leading-relaxed font-medium">
           It looks like the schedule for {displayDate} is clear. You can start booking new patients or manage your staff availability.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-4 w-full">
@@ -125,7 +125,7 @@ export function ClinicAppointments({ appointments, onUpdate, onViewSchedule, dat
                     </div>
                     
                     {apt.notes && (
-                      <div className="flex items-start gap-2 text-[13px] text-slate-600 bg-slate-50 p-3 rounded-xl ml-[52px]">
+                      <div className="flex items-start gap-2 text-[13px] text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-700 p-3 rounded-xl ml-[52px]">
                         <FileText className="h-4 w-4 mt-0.5 flex-shrink-0 text-slate-400" />
                         <span className="leading-relaxed font-medium">{apt.notes}</span>
                       </div>
@@ -260,9 +260,9 @@ export function ClinicAppointments({ appointments, onUpdate, onViewSchedule, dat
 
       {/* Appointment Details Dialog */}
       <Dialog open={!!selectedAppt} onOpenChange={(open) => !open && setSelectedAppt(null)}>
-        <DialogContent className="sm:max-w-md rounded-3xl border-slate-100 p-0 overflow-hidden shadow-2xl bg-white focus:outline-none">
-          <div className="bg-[#f8f9ff] px-6 py-5 border-b border-slate-100/60">
-            <DialogTitle className="text-[19px] font-black tracking-tight text-slate-800">
+        <DialogContent className="sm:max-w-md rounded-3xl border-slate-100 dark:border-slate-700 p-0 overflow-hidden shadow-2xl bg-white dark:bg-slate-800 focus:outline-none">
+          <div className="bg-[#f8f9ff] dark:bg-slate-700 px-6 py-5 border-b border-slate-100/60 dark:border-slate-600">
+            <DialogTitle className="text-[19px] font-black tracking-tight text-slate-800 dark:text-white">
               Appointment Details
             </DialogTitle>
           </div>
@@ -300,19 +300,19 @@ export function ClinicAppointments({ appointments, onUpdate, onViewSchedule, dat
 
               {/* Booking Details Grid */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-slate-50 hover:bg-slate-100/50 transition-colors p-4 rounded-2xl border border-slate-100/80">
+                <div className="bg-slate-50 dark:bg-slate-700 hover:bg-slate-100/50 dark:hover:bg-slate-600 transition-colors p-4 rounded-2xl border border-slate-100/80 dark:border-slate-600">
                   <div className="flex items-center gap-2 text-slate-500 mb-2">
                     <Calendar className="h-4 w-4 text-primary" strokeWidth={2.5} />
                     <span className="text-[11px] font-extrabold uppercase tracking-widest">Date</span>
                   </div>
-                  <p className="font-black text-slate-800 text-[15px]">{format(new Date(selectedAppt.date), 'MMM d, yyyy')}</p>
+                  <p className="font-black text-slate-800 dark:text-white text-[15px]">{format(new Date(selectedAppt.date), 'MMM d, yyyy')}</p>
                 </div>
-                <div className="bg-slate-50 hover:bg-slate-100/50 transition-colors p-4 rounded-2xl border border-slate-100/80">
+                <div className="bg-slate-50 dark:bg-slate-700 hover:bg-slate-100/50 dark:hover:bg-slate-600 transition-colors p-4 rounded-2xl border border-slate-100/80 dark:border-slate-600">
                   <div className="flex items-center gap-2 text-slate-500 mb-2">
                     <Clock className="h-4 w-4 text-amber-500" strokeWidth={2.5} />
                     <span className="text-[11px] font-extrabold uppercase tracking-widest">Time</span>
                   </div>
-                  <p className="font-black text-slate-800 text-[15px]">{selectedAppt.time.slice(0, 5)}</p>
+                  <p className="font-black text-slate-800 dark:text-white text-[15px]">{selectedAppt.time.slice(0, 5)}</p>
                 </div>
               </div>
 
@@ -320,20 +320,20 @@ export function ClinicAppointments({ appointments, onUpdate, onViewSchedule, dat
               {(selectedAppt.doctors || (selectedAppt.booking_services && selectedAppt.booking_services.length > 0)) && (
                 <div className="space-y-4">
                   {selectedAppt.doctors && (
-                    <div className="flex items-start gap-4 p-4 rounded-2xl border border-slate-100 bg-white">
+                    <div className="flex items-start gap-4 p-4 rounded-2xl border border-slate-100 dark:border-slate-600 bg-white dark:bg-slate-700">
                       <div className="p-2.5 bg-[#f0f9ff] text-[#0284c7] rounded-xl">
                         <Stethoscope className="w-5 h-5" strokeWidth={2.5} />
                       </div>
                       <div>
                         <p className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Doctor Selected</p>
-                        <p className="text-[15px] font-black text-slate-800">{selectedAppt.doctors.name}</p>
-                        <p className="text-[13px] font-semibold text-slate-500 mt-0.5">{selectedAppt.doctors.specialization}</p>
+                        <p className="text-[15px] font-black text-slate-800 dark:text-white">{selectedAppt.doctors.name}</p>
+                        <p className="text-[13px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">{selectedAppt.doctors.specialization}</p>
                       </div>
                     </div>
                   )}
                   
                   {selectedAppt.booking_services && selectedAppt.booking_services.length > 0 && (
-                    <div className="flex items-start gap-4 p-4 rounded-2xl border border-slate-100 bg-white">
+                    <div className="flex items-start gap-4 p-4 rounded-2xl border border-slate-100 dark:border-slate-600 bg-white dark:bg-slate-700">
                       <div className="p-2.5 bg-[#f5f3ff] text-[#7c3aed] rounded-xl">
                         <Activity className="w-5 h-5" strokeWidth={2.5} />
                       </div>
@@ -341,7 +341,7 @@ export function ClinicAppointments({ appointments, onUpdate, onViewSchedule, dat
                         <p className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">Services Opted</p>
                         <div className="flex flex-wrap gap-2">
                           {selectedAppt.booking_services.map((svc, idx) => (
-                            <span key={idx} className="inline-flex items-center px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-100 text-[13px] font-bold text-slate-700">
+                            <span key={idx} className="inline-flex items-center px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-600 border border-slate-100 dark:border-slate-500 text-[13px] font-bold text-slate-700 dark:text-slate-200">
                               {svc.clinic_services?.service_name || 'Service'}
                             </span>
                           ))}

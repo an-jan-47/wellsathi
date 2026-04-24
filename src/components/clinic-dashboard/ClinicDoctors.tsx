@@ -217,10 +217,10 @@ export function ClinicDoctors({ clinicId }: Props) {
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         
         {doctors.map((doc) => (
-          <div key={doc.id} className="bg-white rounded-[24px] shadow-[0_2px_15px_-5px_rgba(0,0,0,0.05)] border border-slate-100 p-6 sm:p-7 relative group hover:shadow-[0_8px_25px_-5px_rgba(0,0,0,0.1)] transition-all duration-300">
+          <div key={doc.id} className="bg-white dark:bg-slate-800 rounded-[24px] shadow-[0_2px_15px_-5px_rgba(0,0,0,0.05)] border border-slate-100 dark:border-slate-700 p-6 sm:p-7 relative group hover:shadow-[0_8px_25px_-5px_rgba(0,0,0,0.1)] transition-all duration-300">
             {/* Action Buttons Top Right */}
             <div className="absolute top-6 right-6 flex items-center gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
-              <button onClick={() => startEdit(doc)} className="text-slate-400 hover:text-slate-900 transition-colors p-1">
+              <button onClick={() => startEdit(doc)} className="text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors p-1">
                 <Edit2 className="w-[18px] h-[18px]" strokeWidth={2.5}/>
               </button>
               <DropdownMenu>
@@ -248,13 +248,13 @@ export function ClinicDoctors({ clinicId }: Props) {
                 {/* Active Green Dot Badge */}
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-primary rounded-full border-2 border-white"></div>
               </div>
-              <h3 className="text-xl font-black text-slate-900 tracking-tight leading-tight">{doc.name}</h3>
+              <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">{doc.name}</h3>
               <p className="text-[13px] font-bold text-[#00a88f]">{doc.specialization}</p>
             </div>
 
             <div className="space-y-3 mb-6">
               {doc.email_id && (
-                <div className="flex items-center gap-2.5 text-slate-500 font-medium text-[13px]">
+                <div className="flex items-center gap-2.5 text-slate-500 dark:text-slate-400 font-medium text-[13px]">
                   <AtSign className="w-4 h-4 text-slate-400" />
                   <span className="truncate">{doc.email_id}</span>
                 </div>
@@ -262,7 +262,7 @@ export function ClinicDoctors({ clinicId }: Props) {
             </div>
 
             <div className="flex gap-3 mt-auto">
-              <button onClick={() => handleManageSchedule(doc.id)} className="flex-1 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold text-[13px] rounded-xl transition-colors min-w-0 truncate px-2">
+              <button onClick={() => handleManageSchedule(doc.id)} className="flex-1 py-2.5 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 font-bold text-[13px] rounded-xl transition-colors min-w-0 truncate px-2">
                 Manage Schedule
               </button>
             </div>
@@ -276,17 +276,17 @@ export function ClinicDoctors({ clinicId }: Props) {
           if (!o) setEditingId(null);
         }}>
           <DialogTrigger asChild>
-             <button className="bg-[#f2fcfb] rounded-[24px] border-2 border-dashed border-[#8ce3d6] p-8 flex flex-col items-center justify-center text-center h-full min-h-[300px] hover:bg-[#e6fbf8] hover:border-primary transition-all group">
+             <button className="bg-[#f2fcfb] dark:bg-slate-700 rounded-[24px] border-2 border-dashed border-[#8ce3d6] dark:border-slate-500 p-8 flex flex-col items-center justify-center text-center h-full min-h-[300px] hover:bg-[#e6fbf8] dark:hover:bg-slate-600 hover:border-primary transition-all group">
                <div className="w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center mb-5 shadow-lg shadow-primary/50/30 group-hover:scale-110 transition-transform">
                  <Plus className="w-7 h-7" strokeWidth={3} />
                </div>
-               <h4 className="text-[17px] font-black text-slate-900 mb-1.5 tracking-tight">Add New Professional</h4>
+               <h4 className="text-[17px] font-black text-slate-900 dark:text-white mb-1.5 tracking-tight">Add New Professional</h4>
                <p className="text-[13px] text-[#00a88f] font-medium max-w-[200px]">Register a new specialist to clinic</p>
              </button>
           </DialogTrigger>
-          <DialogContent className="rounded-3xl p-6 md:p-8 border-slate-100 shadow-2xl max-w-xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+          <DialogContent className="rounded-3xl p-6 md:p-8 border-slate-100 dark:border-slate-700 shadow-2xl max-w-xl max-h-[90vh] overflow-y-auto custom-scrollbar dark:bg-slate-800">
             <DialogHeader className="mb-4">
-              <DialogTitle className="text-2xl font-black text-slate-900">{editingId ? 'Edit Professional' : 'Add Professional'}</DialogTitle>
+              <DialogTitle className="text-2xl font-black text-slate-900 dark:text-white">{editingId ? 'Edit Professional' : 'Add Professional'}</DialogTitle>
             </DialogHeader>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -294,7 +294,7 @@ export function ClinicDoctors({ clinicId }: Props) {
               {/* Image Upload Section - Span full row */}
               <div className="col-span-1 md:col-span-2 flex flex-col items-center justify-center mb-2">
                 <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" ref={fileInputRef} onChange={handleImageChange} />
-                <div onClick={() => fileInputRef.current?.click()} className="relative w-24 h-24 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-[#006b5f] hover:bg-slate-100 transition-colors overflow-hidden group shadow-sm">
+                <div onClick={() => fileInputRef.current?.click()} className="relative w-24 h-24 rounded-2xl bg-slate-50 dark:bg-slate-700 border-2 border-dashed border-slate-200 dark:border-slate-600 flex flex-col items-center justify-center cursor-pointer hover:border-[#006b5f] hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors overflow-hidden group shadow-sm">
                   {form.previewUrl ? (
                     <img src={form.previewUrl} alt="Preview" className="w-full h-full object-cover" />
                   ) : (
@@ -313,14 +313,14 @@ export function ClinicDoctors({ clinicId }: Props) {
               </div>
 
               <div className="md:col-span-2">
-                <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider mb-2 block">Full Name *</label>
-                <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Dr. Sarah Jenkins" className="h-12 bg-slate-50 border-slate-200 rounded-xl font-medium focus:border-[#006b5f] focus:ring-[#006b5f]/20" />
+                <label className="text-[13px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 block">Full Name *</label>
+                <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Dr. Sarah Jenkins" className="h-12 bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600 rounded-xl font-medium focus:border-[#006b5f] focus:ring-[#006b5f]/20 dark:text-white dark:placeholder:text-slate-400" />
               </div>
               
               <div className="md:col-span-2">
-                <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider mb-2 block">Specialization *</label>
+                <label className="text-[13px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 block">Specialization *</label>
                 <Select value={form.specialization} onValueChange={(val) => setForm({ ...form, specialization: val })}>
-                  <SelectTrigger className="h-12 bg-slate-50 border-slate-200 rounded-xl font-medium focus:border-[#006b5f] focus:ring-[#006b5f]/20">
+                  <SelectTrigger className="h-12 bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600 rounded-xl font-medium focus:border-[#006b5f] focus:ring-[#006b5f]/20 dark:text-white">
                     <SelectValue placeholder="Select specialty" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border-slate-100 shadow-xl max-h-[200px]">
@@ -332,23 +332,23 @@ export function ClinicDoctors({ clinicId }: Props) {
               </div>
 
               <div>
-                <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider mb-2 block">Fee (₹) *</label>
-                <Input type="number" min="0" value={form.fee} onChange={(e) => setForm({ ...form, fee: parseInt(e.target.value) || 0 })} placeholder="500" className="h-12 bg-slate-50 border-slate-200 rounded-xl font-medium focus:border-[#006b5f] focus:ring-[#006b5f]/20" />
+                <label className="text-[13px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 block">Fee (₹) *</label>
+                <Input type="number" min="0" value={form.fee} onChange={(e) => setForm({ ...form, fee: parseInt(e.target.value) || 0 })} placeholder="500" className="h-12 bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600 rounded-xl font-medium focus:border-[#006b5f] focus:ring-[#006b5f]/20 dark:text-white dark:placeholder:text-slate-400" />
               </div>
 
               <div>
-                <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider mb-2 block">Exp. (Years) *</label>
-                <Input type="number" min="0" value={form.experience} onChange={(e) => setForm({ ...form, experience: parseInt(e.target.value) || 0 })} placeholder="5" className="h-12 bg-slate-50 border-slate-200 rounded-xl font-medium focus:border-[#006b5f] focus:ring-[#006b5f]/20" />
+                <label className="text-[13px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 block">Exp. (Years) *</label>
+                <Input type="number" min="0" value={form.experience} onChange={(e) => setForm({ ...form, experience: parseInt(e.target.value) || 0 })} placeholder="5" className="h-12 bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600 rounded-xl font-medium focus:border-[#006b5f] focus:ring-[#006b5f]/20 dark:text-white dark:placeholder:text-slate-400" />
               </div>
 
               <div className="md:col-span-2">
-                <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider mb-2 block">Email Address</label>
-                <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="doctor@clinic.com" className="h-12 bg-slate-50 border-slate-200 rounded-xl font-medium focus:border-[#006b5f] focus:ring-[#006b5f]/20" />
+                <label className="text-[13px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 block">Email Address</label>
+                <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="doctor@clinic.com" className="h-12 bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600 rounded-xl font-medium focus:border-[#006b5f] focus:ring-[#006b5f]/20 dark:text-white dark:placeholder:text-slate-400" />
               </div>
 
               <div className="md:col-span-2">
-                <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wider mb-2 block">Bio</label>
-                <Textarea value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Brief background about the professional..." className="min-h-[100px] bg-slate-50 border-slate-200 rounded-xl font-medium focus:border-[#006b5f] focus:ring-[#006b5f]/20 resize-none" />
+                <label className="text-[13px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 block">Bio</label>
+                <Textarea value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Brief background about the professional..." className="min-h-[100px] bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600 rounded-xl font-medium focus:border-[#006b5f] focus:ring-[#006b5f]/20 resize-none dark:text-white dark:placeholder:text-slate-400" />
               </div>
             </div>
             

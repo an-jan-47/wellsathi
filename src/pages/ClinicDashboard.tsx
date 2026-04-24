@@ -75,21 +75,21 @@ export default function ClinicDashboard() {
 
   if (authLoading || !isInitialized || isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f8f9ff]">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-900" />
+      <div className="min-h-screen flex items-center justify-center bg-background dark:bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-slate-900 dark:text-white" />
       </div>
     );
   }
 
   if (!clinic) {
     return (
-      <div className="min-h-screen bg-[#f8f9ff] flex items-center justify-center p-4">
-        <div className="max-w-md w-full text-center bg-white p-10 rounded-3xl shadow-sm border border-slate-100">
-          <div className="w-20 h-20 rounded-2xl bg-[#006b5f]/10 flex items-center justify-center mx-auto mb-6">
-            <Building2 className="h-10 w-10 text-slate-900" />
+      <div className="min-h-screen bg-background dark:bg-background flex items-center justify-center p-4">
+        <div className="max-w-md w-full text-center bg-white dark:bg-slate-800 p-10 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700">
+          <div className="w-20 h-20 rounded-2xl bg-[#006b5f]/10 dark:bg-primary/20 flex items-center justify-center mx-auto mb-6">
+            <Building2 className="h-10 w-10 text-slate-900 dark:text-white" />
           </div>
-          <h2 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">No Clinic Found</h2>
-          <p className="text-slate-500 mb-8 leading-relaxed font-medium">You haven't registered a clinic yet. Create your clinical sanctuary to access the dashboard and manage your practice seamlessly.</p>
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">No Clinic Found</h2>
+          <p className="text-slate-500 dark:text-slate-400 mb-8 leading-relaxed font-medium">You haven't registered a clinic yet. Create your clinical sanctuary to access the dashboard and manage your practice seamlessly.</p>
           <Button onClick={() => navigate('/register-clinic')} className="w-full py-6 rounded-xl font-bold bg-[#006b5f] hover:bg-[#005048] text-white shadow-lg transition-all hover:-translate-y-0.5">
             Register Your Clinic
           </Button>
@@ -112,11 +112,11 @@ export default function ClinicDashboard() {
         
         {/* Overview Tab Content */}
         {activeTab === 'overview' && (
-          <div className="text-slate-900">
+          <div className="text-slate-900 dark:text-white">
             {/* Greeting */}
             <div className="mb-8 pl-1">
-              <h2 className="text-[28px] sm:text-[32px] font-black text-slate-900 tracking-tight leading-tight">Clinic Management Dashboard</h2>
-              <p className="text-slate-500 mt-2 font-medium text-[15px]">Welcome back, here is what's happening today at {clinic.name}.</p>
+              <h2 className="text-[28px] sm:text-[32px] font-black text-slate-900 dark:text-white tracking-tight leading-tight">Clinic Management Dashboard</h2>
+              <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium text-[15px]">Welcome back, here is what's happening today at {clinic.name}.</p>
             </div>
 
             <ClinicOverviewStats 
@@ -127,15 +127,15 @@ export default function ClinicDashboard() {
             />
 
             {/* Appointment Status Section */}
-            <section className="bg-white rounded-[24px] shadow-[0_2px_15px_-5px_rgba(0,0,0,0.05)] border-none overflow-hidden relative">
-              <div className="px-6 md:px-10 py-6 flex justify-between items-center bg-white border-b border-slate-50">
+            <section className="bg-white dark:bg-slate-800 rounded-[24px] shadow-[0_2px_15px_-5px_rgba(0,0,0,0.05)] dark:shadow-none border border-slate-100 dark:border-slate-700 overflow-hidden relative">
+              <div className="px-6 md:px-10 py-6 flex justify-between items-center bg-white dark:bg-slate-800 border-b border-slate-50 dark:border-slate-700">
                 <div className="flex items-center gap-3">
-                  <ListTodo className="h-5 w-5 text-slate-900" />
-                  <h3 className="text-[17px] font-black text-slate-900 tracking-tight">Today's Appointments</h3>
+                  <ListTodo className="h-5 w-5 text-slate-900 dark:text-white" />
+                  <h3 className="text-[17px] font-black text-slate-900 dark:text-white tracking-tight">Today's Appointments</h3>
                 </div>
                 <button 
                   onClick={() => setActiveTab('appointments')}
-                  className="text-xs font-bold text-slate-900 hover:text-black flex items-center gap-1.5 transition-colors uppercase tracking-widest"
+                  className="text-xs font-bold text-slate-900 dark:text-white hover:text-black dark:hover:text-slate-200 flex items-center gap-1.5 transition-colors uppercase tracking-widest"
                 >
                   View All
                   <ArrowRight className="h-3.5 w-3.5" strokeWidth={3} />
@@ -143,34 +143,34 @@ export default function ClinicDashboard() {
               </div>
 
               {todayAppointments.length === 0 ? (
-                <div className="p-10 md:p-24 flex flex-col items-center justify-center text-center bg-white min-h-[450px]">
+                <div className="p-10 md:p-24 flex flex-col items-center justify-center text-center bg-white dark:bg-slate-800 min-h-[450px]">
                   <div className="relative mb-12 transform hover:scale-105 transition-transform duration-500">
-                    <div className="w-[180px] h-[180px] bg-[#e6fffb] rounded-full flex items-center justify-center shadow-inner">
-                      <div className="w-[130px] h-[130px] bg-[#ccfff5] rounded-full flex items-center justify-center">
+                    <div className="w-[180px] h-[180px] bg-[#e6fffb] dark:bg-primary/20 rounded-full flex items-center justify-center shadow-inner">
+                      <div className="w-[130px] h-[130px] bg-[#ccfff5] dark:bg-primary/30 rounded-full flex items-center justify-center">
                         <CalendarX className="w-16 h-16 text-primary" strokeWidth={2.5} />
                       </div>
                     </div>
                     {/* Floating overlapping amber badge exactly like image */}
-                    <div className="absolute right-[-10px] bottom-[-5px] bg-white p-3.5 rounded-2xl shadow-[0_8px_25px_rgb(0,0,0,0.1)] border border-slate-50">
+                    <div className="absolute right-[-10px] bottom-[-5px] bg-white dark:bg-slate-700 p-3.5 rounded-2xl shadow-[0_8px_25px_rgb(0,0,0,0.1)] border border-slate-50 dark:border-slate-600">
                       <p className="text-amber-500 font-extrabold text-xl leading-none">🔍</p>
                     </div>
                   </div>
-                  <h4 className="text-[22px] font-black text-slate-800 mb-3 tracking-tight">No appointments today</h4>
-                  <p className="text-slate-500 max-w-sm mx-auto mb-10 text-[14px] leading-relaxed font-medium">
+                  <h4 className="text-[22px] font-black text-slate-800 dark:text-white mb-3 tracking-tight">No appointments today</h4>
+                  <p className="text-slate-500 dark:text-slate-400 max-w-sm mx-auto mb-10 text-[14px] leading-relaxed font-medium">
                     The schedule is clear for today. You can use this time to organize records or update doctor schedules.
                   </p>
                   
                   <div className="flex flex-wrap items-center justify-center gap-4 w-full">
                     <Button 
                       onClick={() => navigate(clinic?.id ? `/book/${clinic.id}` : '/book')}
-                      className="px-6 py-5 sm:py-[18px] sm:px-[22px] font-bold text-[14px] rounded-xl border-2 border-[#129a8a] bg-white text-[#129a8a] shadow-sm hover:bg-[#ebfcf9] transition-all flex items-center gap-2"
+                      className="px-6 py-5 sm:py-[18px] sm:px-[22px] font-bold text-[14px] rounded-xl border-2 border-[#129a8a] bg-white dark:bg-slate-800 text-[#129a8a] shadow-sm hover:bg-[#ebfcf9] dark:hover:bg-slate-700 transition-all flex items-center gap-2"
                     >
                       <Plus className="w-[18px] h-[18px] bg-[#129a8a] text-white rounded-full p-0.5" strokeWidth={3} />
                     Add Appointment 
                     </Button>
                     <Button 
                       onClick={() => { refetchAppointments(); refetchAllAppointments(); }}
-                      className="px-6 py-5 sm:py-[18px] sm:px-[24px] font-bold text-[14px] rounded-xl bg-[#f1f5f9] text-slate-600 hover:bg-slate-200 border-none transition-all shadow-none"
+                      className="px-6 py-5 sm:py-[18px] sm:px-[24px] font-bold text-[14px] rounded-xl bg-[#f1f5f9] dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 border-none transition-all shadow-none"
                     >
                       Refresh Data
                     </Button>
@@ -187,7 +187,7 @@ export default function ClinicDashboard() {
                   </div>
                 </div>
               ) : (
-                <div className="p-4 sm:p-8 bg-white">
+                <div className="p-4 sm:p-8 bg-white dark:bg-slate-800">
                   <ClinicAppointments 
                     appointments={todayAppointments.slice(0, 10)} 
                     onUpdate={() => { refetchAppointments(); refetchAllAppointments(); }} 
@@ -200,21 +200,21 @@ export default function ClinicDashboard() {
 
         {/* Appointments Tab Content (Fully matched to Image 3) */}
         {activeTab === 'appointments' && (
-          <div className="text-slate-900 animate-in fade-in duration-500">
+          <div className="text-slate-900 dark:text-white animate-in fade-in duration-500">
             <div className="mb-8 pl-1">
-              <h2 className="text-[28px] sm:text-[32px] font-black text-slate-900 tracking-tight leading-tight">Appointment Management</h2>
-              <p className="text-slate-500 mt-2 font-medium text-[15px] max-w-2xl">Oversee daily patient schedules and clinic operations. Use the date picker below to navigate through your upcoming clinical commitments.</p>
+              <h2 className="text-[28px] sm:text-[32px] font-black text-slate-900 dark:text-white tracking-tight leading-tight">Appointment Management</h2>
+              <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium text-[15px] max-w-2xl">Oversee daily patient schedules and clinic operations. Use the date picker below to navigate through your upcoming clinical commitments.</p>
             </div>
 
             {/* Redesigned Date Picker Card */}
-            <div className="bg-white rounded-[24px] shadow-[0_2px_15px_-5px_rgba(0,0,0,0.05)] border border-slate-50 p-6 sm:p-8 mb-6 relative">
+            <div className="bg-white dark:bg-slate-800 rounded-[24px] shadow-[0_2px_15px_-5px_rgba(0,0,0,0.05)] dark:shadow-none border border-slate-50 dark:border-slate-700 p-6 sm:p-8 mb-6 relative">
               <div className="flex justify-between items-center mb-6">
-                <div className="flex items-center gap-4 text-slate-800 font-extrabold text-[17px]">
+                <div className="flex items-center gap-4 text-slate-800 dark:text-white font-extrabold text-[17px]">
                   {format(new Date(selectedDate), 'MMMM yyyy')}
                 </div>
                 <button 
                   onClick={() => setSelectedDate(format(new Date(), 'yyyy-MM-dd'))}
-                  className="text-[14px] font-extrabold text-slate-900 hover:text-[#005048] tracking-wide"
+                  className="text-[14px] font-extrabold text-slate-900 dark:text-white hover:text-[#005048] dark:hover:text-primary tracking-wide"
                 >
                   Jump to Today
                 </button>
@@ -230,11 +230,11 @@ export default function ClinicDashboard() {
                       className={`min-w-[70px] flex flex-col items-center justify-center py-4 px-3 rounded-2xl transition-all duration-300 ${
                         isSelected
                           ? 'bg-[#006b5f] text-white shadow-[0_10px_25px_-5px_rgba(0,107,95,0.4)] scale-105'
-                          : 'bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-900 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-slate-100'
+                          : 'bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-600 hover:text-slate-900 dark:hover:text-white shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-slate-100 dark:border-slate-600'
                       }`}
                     >
                       <span className="text-[11px] font-extrabold tracking-widest mb-2 opacity-90">{option.dayStr}</span>
-                      <span className={`text-[22px] font-black leading-none ${isSelected ? 'text-white' : 'text-slate-800'}`}>
+                      <span className={`text-[22px] font-black leading-none ${isSelected ? 'text-white' : 'text-slate-800 dark:text-white'}`}>
                         {option.numStr}
                       </span>
                     </button>
@@ -244,7 +244,7 @@ export default function ClinicDashboard() {
             </div>
 
             {/* List or Empty State component inside native page area */}
-            <div className={`mt-6 ${appointments.length > 0 ? 'bg-white rounded-[24px] shadow-[0_2px_15px_-5px_rgba(0,0,0,0.05)] border border-slate-50 p-6 md:p-8' : ''}`}>
+            <div className={`mt-6 ${appointments.length > 0 ? 'bg-white dark:bg-slate-800 rounded-[24px] shadow-[0_2px_15px_-5px_rgba(0,0,0,0.05)] dark:shadow-none border border-slate-50 dark:border-slate-700 p-6 md:p-8' : ''}`}>
               <ClinicAppointments 
                 appointments={appointments} 
                 onUpdate={refetchAppointments} 
@@ -257,7 +257,7 @@ export default function ClinicDashboard() {
 
         {/* For Other Tabs, we provide a unified clean white container to keep it seamless */}
         {activeTab !== 'overview' && activeTab !== 'appointments' && (
-          <div className="bg-white rounded-[24px] shadow-[0_2px_15px_-5px_rgba(0,0,0,0.05)] p-6 md:p-10 min-h-[600px]">
+          <div className="bg-white dark:bg-slate-800 rounded-[24px] shadow-[0_2px_15px_-5px_rgba(0,0,0,0.05)] dark:shadow-none border border-slate-100 dark:border-slate-700 p-6 md:p-10 min-h-[600px]">
             {activeTab === 'slots' && (
               <div className="animate-in fade-in duration-500">
                 <ClinicSlots clinicId={clinic.id} />
@@ -290,7 +290,7 @@ export default function ClinicDashboard() {
 
             {activeTab === 'reviews' && (
               <div className="animate-in fade-in duration-500">
-                <h2 className="text-2xl font-black text-slate-900 mb-8 border-b border-slate-50 pb-4 tracking-tight">Patient Reviews</h2>
+                <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-8 border-b border-slate-50 dark:border-slate-700 pb-4 tracking-tight">Patient Reviews</h2>
                 <ClinicReviews clinicId={clinic.id} />
               </div>
             )}
