@@ -11,6 +11,7 @@ import { getSpecialtyIcon } from '@/constants/icons';
 import { Search as SearchIcon, MapPin, SlidersHorizontal, Loader2, List, Map, Star, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import type { SortOption } from '@/constants';
+import { ClinicCardSkeleton } from '@/components/common/SkeletonLoaders';
 
 export default function Search() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -61,23 +62,23 @@ export default function Search() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-[#fafafa] font-sans">
+      <div className="min-h-screen bg-background dark:bg-background font-sans">
         
         {/* Header Section */}
-        <div className="bg-white pt-6 pb-6 shadow-[0_4px_30px_-10px_rgba(0,0,0,0.03)] relative z-20">
+        <div className="bg-white dark:bg-slate-800 pt-6 pb-6 shadow-[0_4px_30px_-10px_rgba(0,0,0,0.03)] relative z-20">
           <div className="container max-w-[1000px] mx-auto text-center md:text-left">
             <span className="text-[11px] font-black text-primary uppercase tracking-widest">Medical Directory</span>
-            <h1 className="text-[32px] md:text-[42px] font-black text-slate-900 tracking-tight leading-tight mt-1 mb-6">Explore Specialized Clinics</h1>
+            <h1 className="text-[32px] md:text-[42px] font-black text-slate-900 dark:text-white tracking-tight leading-tight mt-1 mb-6">Explore Specialized Clinics</h1>
             
             {/* Massive Search Bar with Combined Filters */}
-            <div className="flex items-center w-full bg-white border-2 border-slate-100 rounded-[28px] md:rounded-full p-2.5 shadow-xl shadow-slate-200/50 relative transition-all focus-within:border-primary/30">
+            <div className="flex items-center w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-700 rounded-[28px] md:rounded-full p-2.5 shadow-xl shadow-slate-200/50 dark:shadow-none relative transition-all focus-within:border-primary/30">
                <div className="flex-1 flex items-center relative pl-4 pr-2">
-                 <SearchIcon className="w-5 h-5 text-slate-400 absolute left-4" />
+                 <SearchIcon className="w-5 h-5 text-slate-400 dark:text-slate-500 absolute left-4" />
                  <input 
                     value={filters.query}
                     onChange={e => updateParams({ query: e.target.value })}
                     placeholder="Search by clinic name or specialty..."
-                    className="w-full bg-transparent pl-10 pr-4 py-3 text-[16px] font-medium text-slate-900 outline-none placeholder:text-slate-400"
+                    className="w-full bg-transparent pl-10 pr-4 py-3 text-[16px] font-medium text-slate-900 dark:text-white outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
                  />
                  
                  {/* Combined Filter Icon inside search bar */}
@@ -143,18 +144,18 @@ export default function Search() {
                {/* Fixed primary colored all filter block */}
                <DropdownMenu>
                  <DropdownMenuTrigger asChild>
-                   <button className="flex shrink-0 items-center gap-1.5 px-4 py-2 bg-[#E6F4F1] text-primary border border-primary/10 hover:bg-primary/20 rounded-full text-[13px] font-bold transition-colors">
+                   <button className="flex shrink-0 items-center gap-1.5 px-4 py-2 bg-[#E6F4F1] dark:bg-primary/20 text-primary border border-primary/10 hover:bg-primary/20 dark:hover:bg-primary/30 rounded-full text-[13px] font-bold transition-colors">
                      All Specialized <ChevronDown className="w-3.5 h-3.5" />
                    </button>
                  </DropdownMenuTrigger>
-                 <DropdownMenuContent className="w-56 p-2 rounded-2xl shadow-xl border-slate-100" align="start">
-                    <DropdownMenuItem onClick={() => updateParams({ specialty: '' })} className="font-bold text-[13px] rounded-xl cursor-pointer py-2 px-3">
+                 <DropdownMenuContent className="w-56 p-2 rounded-2xl shadow-xl border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900" align="start">
+                    <DropdownMenuItem onClick={() => updateParams({ specialty: '' })} className="font-bold text-[13px] rounded-xl cursor-pointer py-2 px-3 dark:text-slate-200">
                        Clear Specialty
                     </DropdownMenuItem>
                     {SPECIALIZATIONS.map(spec => {
                       const Icon = getSpecialtyIcon(spec);
                       return (
-                        <DropdownMenuItem key={spec} onClick={() => updateParams({ specialty: spec })} className="font-semibold text-[13px] rounded-xl cursor-pointer py-2 px-3 text-slate-700 flex items-center gap-2">
+                        <DropdownMenuItem key={spec} onClick={() => updateParams({ specialty: spec })} className="font-semibold text-[13px] rounded-xl cursor-pointer py-2 px-3 text-slate-700 dark:text-slate-300 flex items-center gap-2">
                           <Icon className="w-3.5 h-3.5 text-primary opacity-70" />
                           {spec}
                         </DropdownMenuItem>
@@ -170,9 +171,9 @@ export default function Search() {
                    <button 
                      key={spec} 
                      onClick={() => updateParams({ specialty: spec === filters.specialty ? '' : spec })}
-                     className={`flex shrink-0 items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-semibold border transition-colors ${filters.specialty === spec ? 'bg-[#E6F4F1] text-primary border-primary/20' : 'bg-[#F8F9FA] border-transparent text-slate-700 hover:bg-slate-100'}`}
+                     className={`flex shrink-0 items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-semibold border transition-colors ${filters.specialty === spec ? 'bg-[#E6F4F1] dark:bg-primary/20 text-primary border-primary/20' : 'bg-[#F8F9FA] dark:bg-slate-800 border-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
                    >
-                     <Icon className={`w-3.5 h-3.5 ${filters.specialty === spec ? 'text-primary' : 'text-slate-400'}`} />
+                     <Icon className={`w-3.5 h-3.5 ${filters.specialty === spec ? 'text-primary' : 'text-slate-400 dark:text-slate-500'}`} />
                      {spec}
                    </button>
                  );
@@ -181,16 +182,16 @@ export default function Search() {
                {/* Functional Fee Filter */}
                <DropdownMenu>
                  <DropdownMenuTrigger asChild>
-                   <button className={`flex shrink-0 items-center gap-1.5 px-4 py-2 border rounded-full text-[13px] font-semibold transition-colors ${filters.maxFees ? 'bg-[#E6F4F1] text-primary border-primary/20' : 'bg-[#F8F9FA] text-slate-700 border-transparent hover:bg-slate-100'}`}>
-                     {filters.maxFees ? `Up to ₹${filters.maxFees}` : 'Fee'} <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                   <button className={`flex shrink-0 items-center gap-1.5 px-4 py-2 border rounded-full text-[13px] font-semibold transition-colors ${filters.maxFees ? 'bg-[#E6F4F1] dark:bg-primary/20 text-primary border-primary/20' : 'bg-[#F8F9FA] dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-transparent hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
+                     {filters.maxFees ? `Up to ₹${filters.maxFees}` : 'Fee'} <ChevronDown className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
                    </button>
                  </DropdownMenuTrigger>
-                 <DropdownMenuContent className="w-48 p-2 rounded-2xl shadow-xl border-slate-100" align="start">
-                    <DropdownMenuItem onClick={() => updateParams({ maxFees: '' })} className="font-bold text-[13px] rounded-xl cursor-pointer py-2 px-3">
+                 <DropdownMenuContent className="w-48 p-2 rounded-2xl shadow-xl border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900" align="start">
+                    <DropdownMenuItem onClick={() => updateParams({ maxFees: '' })} className="font-bold text-[13px] rounded-xl cursor-pointer py-2 px-3 dark:text-slate-200">
                        Any Fee
                     </DropdownMenuItem>
                     {['500', '1000', '2000', '5000'].map(fee => (
-                      <DropdownMenuItem key={fee} onClick={() => updateParams({ maxFees: fee })} className="font-semibold text-[13px] rounded-xl cursor-pointer py-2 px-3 text-slate-700">
+                      <DropdownMenuItem key={fee} onClick={() => updateParams({ maxFees: fee })} className="font-semibold text-[13px] rounded-xl cursor-pointer py-2 px-3 text-slate-700 dark:text-slate-300">
                         Up to ₹{fee}
                       </DropdownMenuItem>
                     ))}
@@ -208,8 +209,11 @@ export default function Search() {
              {/* Left Column: Listings */}
              <div className="flex-1 flex flex-col min-w-0">
                {isLoading ? (
-                 <div className="flex items-center justify-center py-16">
-                   <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                 <div className="space-y-4">
+                   <ClinicCardSkeleton />
+                   <ClinicCardSkeleton />
+                   <ClinicCardSkeleton />
+                   <ClinicCardSkeleton />
                  </div>
                ) : clinics.length > 0 ? (
                  <div className="flex flex-col gap-6">

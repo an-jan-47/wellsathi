@@ -124,29 +124,29 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fafafa] flex flex-col items-center justify-between p-4 font-sans text-slate-800">
+    <div className="min-h-screen bg-background dark:bg-background flex flex-col items-center justify-between p-4 font-sans text-slate-800 dark:text-slate-200">
       
       {/* Top Navigation Anchor (Optional left logo placement if desired) */}
       <div className="w-full max-w-[1200px] flex justify-start p-4 md:p-6">
         <Link to="/" className="flex items-center gap-2 group cursor-pointer">
            <img src="/favicon.ico" alt="WellSathi Logo" className="w-8 h-8 group-hover:scale-105 transition-transform duration-300" />
-           <span className="font-bold text-lg text-slate-800 tracking-tight hidden sm:block">WellSathi</span>
+           <span className="font-bold text-lg text-slate-800 dark:text-slate-200 tracking-tight hidden sm:block">WellSathi</span>
         </Link>
       </div>
 
       {/* Main Authentication Card */}
       <div className="flex-1 flex flex-col items-center justify-center w-full">
-        <div className="w-full max-w-[420px] bg-white rounded-3xl shadow-[0_2px_20px_-5px_rgba(0,0,0,0.03)] border border-slate-100 p-8 sm:p-10 animate-in fade-in zoom-in-95 duration-700 ease-out hover:shadow-[0_8px_30px_-5px_rgba(0,0,0,0.05)] transition-shadow">
+        <div className="w-full max-w-[420px] bg-white dark:bg-slate-800 rounded-3xl shadow-[0_2px_20px_-5px_rgba(0,0,0,0.03)] border border-slate-100 dark:border-slate-700 p-8 sm:p-10 animate-in fade-in zoom-in-95 duration-700 ease-out hover:shadow-[0_8px_30px_-5px_rgba(0,0,0,0.05)] transition-shadow">
           
           {/* Logo Icon Header */}
           <div className="flex flex-col items-center mb-8">
             <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-5">
               <img src="/favicon.ico" alt="Logo" className="w-6 h-6 object-contain opacity-80" />
             </div>
-            <h1 className="text-[24px] font-black tracking-tight text-slate-900">
+            <h1 className="text-[24px] font-black tracking-tight text-slate-900 dark:text-white">
               {mode === 'signin' ? 'Welcome back' : 'Create an account'}
             </h1>
-            <p className="text-[14px] text-slate-500 font-medium mt-1">
+            <p className="text-[14px] text-slate-500 dark:text-slate-400 font-medium mt-1">
               {mode === 'signin' 
                 ? 'Please enter your details to sign in.' 
                 : 'Enter your details to register.'}

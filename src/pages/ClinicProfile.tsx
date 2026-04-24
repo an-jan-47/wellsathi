@@ -16,6 +16,7 @@ import { ClinicReviews } from '@/components/clinic/ClinicReviews';
 import { ClinicHeroBanner } from '@/components/clinic/ClinicHeroBanner';
 import { ClinicDoctorsGrid } from '@/components/clinic/ClinicDoctorsGrid';
 import { ClinicMap } from '@/components/clinic/ClinicMap';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface Service {
   id: string;
@@ -89,8 +90,21 @@ export default function ClinicProfile() {
   if (isLoading) {
     return (
       <Layout>
-        <div className="flex items-center justify-center min-h-[80vh] bg-[#fafafa]">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="min-h-screen bg-background dark:bg-background">
+          <div className="container max-w-[1200px] py-8">
+            <div className="space-y-6">
+              <Skeleton className="h-64 w-full rounded-3xl" />
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
+                  <Skeleton className="h-48 w-full rounded-2xl" />
+                  <Skeleton className="h-64 w-full rounded-2xl" />
+                </div>
+                <div className="space-y-6">
+                  <Skeleton className="h-96 w-full rounded-2xl" />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </Layout>
     );

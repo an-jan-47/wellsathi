@@ -121,9 +121,9 @@ export function HeroSection() {
   );
 
   return (
-    <section className="relative bg-white pt-20 pb-16 md:pt-32 md:pb-24 min-h-[480px] md:min-h-[600px]">
+    <section className="relative bg-background dark:bg-background pt-20 pb-16 md:pt-32 md:pb-24 min-h-[480px] md:min-h-[600px]">
       {/* Subtle radial background matching the design */}
-      <div className="absolute inset-0 top-0 w-full h-[600px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-100/50 via-white to-white pointer-events-none"></div>
+      <div className="absolute inset-0 top-0 w-full h-[600px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-100/50 via-white to-white dark:from-slate-800/30 dark:via-background dark:to-background pointer-events-none"></div>
 
       <div className="container relative z-10">
         <div className="max-w-4xl mx-auto text-center">
@@ -134,11 +134,11 @@ export function HeroSection() {
           </div>
 
           {/* Main Headline */}
-          <h1 className="text-[46px] md:text-[64px] font-black tracking-tight text-slate-900 leading-[1.1] mb-6 animate-in slide-in-from-bottom-4 duration-700 ease-out">
+          <h1 className="text-[46px] md:text-[64px] font-black tracking-tight text-slate-900 dark:text-white leading-[1.1] mb-6 animate-in slide-in-from-bottom-4 duration-700 ease-out">
             Your Health, <span className="text-primary">Our Priority</span>
           </h1>
 
-          <p className="text-[17px] text-slate-500 font-medium max-w-xl mx-auto mb-12 animate-in slide-in-from-bottom-5 duration-700 delay-150 fill-mode-both">
+          <p className="text-[17px] text-slate-500 dark:text-slate-400 font-medium max-w-xl mx-auto mb-12 animate-in slide-in-from-bottom-5 duration-700 delay-150 fill-mode-both">
             Find and book appointments with the best clinics near you.
             <br className="hidden sm:block" />
             Quick, easy, and hassle-free.
@@ -147,12 +147,12 @@ export function HeroSection() {
           {/* Search Box */}
           <form
             onSubmit={handleSearch}
-            className="flex flex-col md:flex-row items-center max-w-[700px] mx-auto bg-white rounded-2xl md:rounded-full p-2 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.1)] border border-slate-100 animate-in slide-in-from-bottom-6 duration-700 delay-300 fill-mode-both relative z-20 hover:shadow-[0_12px_40px_-10px_rgba(0,0,0,0.12)] transition-shadow gap-2 md:gap-0"
+            className="flex flex-col md:flex-row items-center max-w-[700px] mx-auto bg-white dark:bg-slate-800 rounded-2xl md:rounded-full p-2 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.1)] border border-slate-100 dark:border-slate-700 animate-in slide-in-from-bottom-6 duration-700 delay-300 fill-mode-both relative z-20 hover:shadow-[0_12px_40px_-10px_rgba(0,0,0,0.12)] transition-shadow gap-2 md:gap-0"
           >
             {/* Location Input */}
             <div
               ref={locationRef}
-              className="relative flex-1 w-full md:border-r border-slate-100 flex items-center pr-4 rounded-xl md:rounded-none bg-slate-50 md:bg-transparent"
+              className="relative flex-1 w-full md:border-r border-slate-100 dark:border-slate-700 flex items-center pr-4 rounded-xl md:rounded-none bg-slate-50 dark:bg-slate-900 md:bg-transparent md:dark:bg-transparent"
             >
               <div className="pl-6 pr-2 py-4 flex items-center justify-center">
                 {isLoadingLocation ? (

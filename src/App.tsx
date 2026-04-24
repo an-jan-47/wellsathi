@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { ScrollToTop } from '@/components/common/ScrollToTop';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import { Loader2 } from 'lucide-react';
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react"
@@ -105,13 +106,15 @@ function AppContent() {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <ErrorBoundary>
-        <Toaster />
-        <Sonner />
-        <AppContent />
-      </ErrorBoundary>
-    </TooltipProvider>
+    <ThemeProvider>
+      <TooltipProvider>
+        <ErrorBoundary>
+          <Toaster />
+          <Sonner />
+          <AppContent />
+        </ErrorBoundary>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

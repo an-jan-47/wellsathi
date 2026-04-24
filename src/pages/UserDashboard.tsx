@@ -21,6 +21,7 @@ import {
 import { ClinicReviews } from '@/components/clinic/ClinicReviews';
 import { RescheduleDialog } from '@/components/booking/RescheduleDialog';
 import type { AppointmentWithClinic } from '@/services/appointmentService';
+import { AppointmentCardSkeleton, ProfileFormSkeleton } from '@/components/common/SkeletonLoaders';
 
 export default function UserDashboard() {
   const navigate = useNavigate();
@@ -130,7 +131,7 @@ export default function UserDashboard() {
   if (authLoading || !isInitialized) {
     return (
       <Layout>
-        <div className="flex items-center justify-center min-h-[60vh] bg-slate-50">
+        <div className="flex items-center justify-center min-h-[60vh] bg-background dark:bg-background">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </Layout>
@@ -139,7 +140,7 @@ export default function UserDashboard() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-background dark:bg-background">
         <div className="container max-w-[1000px] py-6 sm:py-8">
           {/* Appointments Tab */}
           {activeTab === 'appointments' && (
@@ -147,7 +148,7 @@ export default function UserDashboard() {
               {/* Header Row — stacks on mobile */}
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
                 <div>
-                  <h1 className="text-[28px] sm:text-[34px] font-black text-slate-900 tracking-tight leading-tight">My Appointments</h1>
+                  <h1 className="text-[28px] sm:text-[34px] font-black text-slate-900 dark:text-white tracking-tight leading-tight">My Appointments</h1>
                   <p className="text-slate-500 font-medium mt-1 text-[14px] sm:text-base">Manage your clinical visits and healthcare schedule.</p>
                 </div>
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-3 sm:p-4 flex items-center gap-3 shrink-0 self-start">
@@ -177,7 +178,11 @@ export default function UserDashboard() {
 
               {/* Appointment List */}
               {isLoading ? (
-                <div className="flex items-center justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+                <div className="space-y-4">
+                  <AppointmentCardSkeleton />
+                  <AppointmentCardSkeleton />
+                  <AppointmentCardSkeleton />
+                </div>
               ) : filteredAppointments.length === 0 ? (
                 <div className="bg-white rounded-[24px] border border-slate-100 shadow-sm p-10 sm:p-16 text-center">
                   <Calendar className="w-12 h-12 text-slate-200 mx-auto mb-4" />

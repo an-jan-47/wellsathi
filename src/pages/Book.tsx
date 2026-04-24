@@ -22,6 +22,7 @@ import type { Doctor } from '@/types';
 import { BookingStepBar } from '@/components/booking/BookingStepBar';
 import { BookingSuccess } from '@/components/booking/BookingSuccess';
 import { BookingSidebar } from '@/components/booking/BookingSidebar';
+import { DoctorCardSkeleton, TimeSlotSkeleton, BookingSidebarSkeleton } from '@/components/common/SkeletonLoaders';
 
 /* ───────────── validation schema ───────────── */
 const patientSchema = z.object({
@@ -183,8 +184,19 @@ export default function Book() {
   if (isLoading) {
     return (
       <Layout>
-        <div className="flex items-center justify-center min-h-[70vh] bg-slate-50">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <div className="min-h-screen bg-background dark:bg-background">
+          <BookingStepBar step={1} />
+          <div className="container max-w-[1100px] py-8">
+            <div className="flex flex-col lg:flex-row gap-8">
+              <div className="flex-1 space-y-6">
+                <DoctorCardSkeleton />
+                <TimeSlotSkeleton />
+              </div>
+              <aside className="lg:w-[380px]">
+                <BookingSidebarSkeleton />
+              </aside>
+            </div>
+          </div>
         </div>
       </Layout>
     );
@@ -219,7 +231,7 @@ export default function Book() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-background dark:bg-background">
         <BookingStepBar step={step} />
 
         <div className="container max-w-[1100px] py-8">
