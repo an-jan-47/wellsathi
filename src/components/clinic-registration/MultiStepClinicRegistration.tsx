@@ -66,7 +66,7 @@ export function MultiStepClinicRegistration() {
         </aside>
 
         {/* ── Right form area ── */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto custom-scrollbar">
           <div className="max-w-[600px] mx-auto px-4 py-10">
             {/* Progress steps */}
             <div className="mb-8">

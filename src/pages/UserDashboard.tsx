@@ -164,7 +164,7 @@ export default function UserDashboard() {
               </div>
 
               {/* Status Filter Tabs */}
-              <div className="flex gap-2 mb-6 overflow-x-auto pb-1 no-scrollbar">
+              <div className="flex gap-2 mb-6 overflow-x-auto pb-1 custom-scrollbar">
                 {(['all', 'confirmed', 'pending', 'past'] as const).map(f => (
                   <button
                     key={f}

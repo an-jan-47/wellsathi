@@ -150,7 +150,7 @@ export function ClinicReviews({ clinicId }: Props) {
 
       {/* Filters and Sort */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-2 border-b border-slate-100 dark:border-slate-700">
-        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2 sm:pb-0">
+        <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-2 sm:pb-0">
           {filters.map((filter) => (
             <button
               key={filter}

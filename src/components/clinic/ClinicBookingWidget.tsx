@@ -90,7 +90,7 @@ export function ClinicBookingWidget({
             {/* Date Selector */}
             <div className="mb-5">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Preferred Date</label>
-              <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 no-scrollbar">
+              <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 custom-scrollbar">
                 {dateOptions.slice(0, 7).map((option) => {
                   const isSelected = selectedDate === option.value;
                   return (

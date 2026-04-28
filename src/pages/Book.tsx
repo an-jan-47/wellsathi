@@ -64,13 +64,21 @@ export default function Book() {
   const [bookingRefId, setBookingRefId] = useState('');
 
   /* ── step 1 selections ── */
-  const [selectedDoctorId, setSelectedDoctorId] = useState<string>('');
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string>(searchParams.get('doctor') || '');
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState(searchParams.get('date') || format(new Date(), 'yyyy-MM-dd'));
   const [selectedTime, setSelectedTime] = useState(searchParams.get('time') || '');
 
-  const { data: slots = [], refetch: refetchSlots } = useAllSlots(clinicId, selectedDate);
+  const { data: slots = [], refetch: refetchSlots } = useAllSlots(selectedDoctorId, selectedDate);
   const bookMutation = useBookAppointment();
+
+  /* default to first doctor if none selected and doctors are loaded */
+  useEffect(() => {
+    if (doctors.length > 0 && !selectedDoctorId) {
+      setSelectedDoctorId(doctors[0].id);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [doctors.length]);
 
   /* ── step 2 form ── */
   const [formData, setFormData] = useState({
@@ -402,7 +410,9 @@ export default function Book() {
                           ))}
                         </div>
                       ) : (
-                        <p className="text-sm text-muted-foreground py-4 text-center bg-muted/50 rounded-lg">No slots available for this date</p>
+                        <p className="text-sm text-muted-foreground py-4 text-center bg-muted/50 rounded-lg">
+                          {!selectedDoctorId ? 'Please select a doctor to view slots' : 'No slots available for this date'}
+                        </p>
                       )}
                     </div>
                   </CardContent>

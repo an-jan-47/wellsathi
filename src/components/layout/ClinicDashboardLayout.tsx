@@ -101,7 +101,7 @@ export function ClinicDashboardLayout({ children, activeTab, onTabChange, clinic
           </button>
         </div>
 
-        <nav className="flex-1 space-y-1 overflow-y-auto no-scrollbar pb-4">
+        <nav className="flex-1 space-y-1 overflow-y-auto custom-scrollbar pb-4">
           {navItems.map((item) => {
             const isActive = activeTab === item.id;
             return (

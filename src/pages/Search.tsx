@@ -251,7 +251,7 @@ export default function Search() {
 
         {/* Quick Filters Section - Sticky, Scrollable, Seamless Transition */}
         <div className={`sticky top-[80px] z-10 transition-all duration-300 py-3 filter-bar ${isScrolled ? 'scrolled' : ''}`}>
-          <div className="w-full overflow-x-auto scrollbar-hide">
+          <div className="w-full overflow-x-auto custom-scrollbar">
             <div className="flex items-center justify-start md:justify-center gap-2 px-4 min-w-max md:min-w-0">
               {/* All Specialties Dropdown */}
               <DropdownMenu>

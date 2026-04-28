@@ -156,7 +156,7 @@ export function BrowseBySpecialty() {
 
           <div 
             ref={scrollContainerRef}
-            className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 scroll-smooth touch-pan-x hide-scrollbar"
+            className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 scroll-smooth touch-pan-x custom-scrollbar"
             role="list"
           >
             {isLoading
@@ -172,17 +172,6 @@ export function BrowseBySpecialty() {
           </div>
         </div>
       </div>
-      
-      <style>{`
-        /* Hide scrollbar for a cleaner horizontal scroll look on mobile */
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .hide-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
     </section>
   );
 }

@@ -90,7 +90,7 @@ export default function ClinicDashboard() {
 
       <div className="container py-6">
         {/* Tabs */}
-        <div className="flex gap-1 mb-6 overflow-x-auto pb-2 border-b border-border">
+        <div className="flex gap-1 mb-6 overflow-x-auto pb-2 border-b border-border custom-scrollbar">
           {tabs.map((tab) => (
             <button
               key={tab.id}

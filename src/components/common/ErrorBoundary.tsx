@@ -61,7 +61,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                   <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
                     Error details
                   </summary>
-                  <pre className="mt-2 text-xs bg-muted p-3 rounded-lg overflow-x-auto max-h-32">
+                  <pre className="mt-2 text-xs bg-muted p-3 rounded-lg overflow-x-auto custom-scrollbar max-h-32">
                     {this.state.error.message}
                   </pre>
                 </details>

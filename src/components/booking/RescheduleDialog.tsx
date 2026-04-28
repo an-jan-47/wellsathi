@@ -147,7 +147,7 @@ export function RescheduleDialog({
             <p className="text-[10px] sm:text-[11px] font-extrabold text-slate-400 uppercase tracking-widest mb-2.5">
               Select New Date
             </p>
-            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar">
+            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 custom-scrollbar">
               {dateOptions.map((opt) => {
                 const isSelected = selectedDate === opt.value;
                 return (
