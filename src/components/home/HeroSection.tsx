@@ -121,21 +121,25 @@ export function HeroSection() {
   );
 
   return (
-    <section className="relative bg-background dark:bg-background pt-20 pb-12 md:pt-32 md:pb-18 min-h-[480px] md:min-h-[600px]">
-      {/* Subtle radial background matching the design */}
-      <div className="absolute inset-0 top-0 w-full h-[600px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-100/50 via-white to-white dark:from-slate-800/30 dark:via-background dark:to-background pointer-events-none"></div>
+    <section className="relative bg-background dark:bg-background pt-20 pb-12 md:pt-32 md:pb-18 min-h-[480px] md:min-h-[600px] overflow-hidden">
+      {/* Enhanced animated gradient background */}
+      <div className="absolute inset-0 top-0 w-full h-[600px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-white to-white dark:from-primary/10 dark:via-background dark:to-background pointer-events-none animate-gradient"></div>
+      
+      {/* Floating orbs for depth */}
+      <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-float-slow pointer-events-none"></div>
+      <div className="absolute top-40 right-10 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl animate-float-slower pointer-events-none"></div>
 
       <div className="container relative z-10">
         <div className="max-w-4xl mx-auto text-center">
-          {/* Trust Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-[12px] font-black uppercase tracking-widest mb-10 animate-fade-in hover:scale-105 transition-transform cursor-default">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+          {/* Trust Badge with enhanced animation */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-primary/10 to-blue-500/10 dark:from-primary/20 dark:to-blue-500/20 text-primary text-[12px] font-black uppercase tracking-widest mb-10 animate-fade-in hover:scale-105 transition-all duration-300 cursor-default shadow-sm hover:shadow-md">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-sm shadow-primary/50" />
             Trusted by 10,000+ patients
           </div>
 
-          {/* Main Headline */}
+          {/* Main Headline with gradient text */}
           <h1 className="text-[46px] md:text-[64px] font-black tracking-tight text-slate-900 dark:text-white leading-[1.1] mb-6 animate-in slide-in-from-bottom-4 duration-700 ease-out">
-            Your Health, <span className="text-primary">Our Priority</span>
+            Your Health, <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-600 to-primary animate-gradient-x">Our Priority</span>
           </h1>
 
           <p className="text-[17px] text-slate-500 dark:text-slate-400 font-medium max-w-xl mx-auto mb-12 animate-in slide-in-from-bottom-5 duration-700 delay-150 fill-mode-both">
@@ -144,11 +148,11 @@ export function HeroSection() {
             Quick, easy, and hassle-free.
           </p>
 
-          {/* Search Box */}
+          {/* Search Box with enhanced interactions */}
           <form
             onSubmit={handleSearch}
             aria-label="Search for clinics"
-            className="flex flex-col md:flex-row items-center max-w-[700px] mx-auto bg-white dark:bg-slate-800 rounded-2xl md:rounded-full p-2 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.1)] border border-slate-100 dark:border-slate-700 animate-in slide-in-from-bottom-6 duration-700 delay-300 fill-mode-both relative z-20 hover:shadow-[0_12px_40px_-10px_rgba(0,0,0,0.12)] transition-shadow gap-2 md:gap-0"
+            className="flex flex-col md:flex-row items-center max-w-[700px] mx-auto bg-white dark:bg-slate-800 rounded-2xl md:rounded-full p-2 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_30px_-10px_rgba(0,0,0,0.3)] border border-slate-100 dark:border-slate-700 animate-in slide-in-from-bottom-6 duration-700 delay-300 fill-mode-both relative z-20 hover:shadow-[0_12px_40px_-10px_rgba(0,0,0,0.15)] dark:hover:shadow-[0_12px_40px_-10px_rgba(0,0,0,0.4)] transition-all duration-300 gap-2 md:gap-0 group"
           >
             {/* Location Input */}
             <div
@@ -265,7 +269,7 @@ export function HeroSection() {
             <button
               type="submit"
               aria-label="Search clinics"
-              className="w-full md:w-auto mt-2 md:mt-0 bg-primary hover:bg-primary/90 text-white font-bold text-[15px] rounded-xl md:rounded-full px-8 py-4 flex items-center justify-center gap-2 transition-all duration-100 will-change-transform hover:scale-[1.02] active:scale-[0.98] shadow-md shadow-primary/20 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+              className="w-full md:w-auto mt-2 md:mt-0 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 text-white font-bold text-[15px] rounded-xl md:rounded-full px-8 py-4 flex items-center justify-center gap-2 transition-all duration-200 will-change-transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/30 dark:shadow-primary/20 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none hover:shadow-xl hover:shadow-primary/40 dark:hover:shadow-primary/30"
             >
               <Search className="h-4 w-4 stroke-[3]" />
               Search

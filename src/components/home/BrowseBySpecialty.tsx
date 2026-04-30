@@ -38,10 +38,33 @@ const ViewAllCard = React.memo(() => {
 
 ViewAllCard.displayName = 'ViewAllCard';
 
+// Specialty color mapping for distinctive visual identity
+const SPECIALTY_COLORS: Record<string, { bg: string; icon: string; hover: string }> = {
+  'General Medicine': { bg: 'bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-800/20', icon: 'text-blue-600 dark:text-blue-400', hover: 'group-hover:from-blue-200 group-hover:to-blue-100 dark:group-hover:from-blue-800/40 dark:group-hover:to-blue-700/30' },
+  'Dentistry': { bg: 'bg-gradient-to-br from-cyan-100 to-cyan-50 dark:from-cyan-900/30 dark:to-cyan-800/20', icon: 'text-cyan-600 dark:text-cyan-400', hover: 'group-hover:from-cyan-200 group-hover:to-cyan-100 dark:group-hover:from-cyan-800/40 dark:group-hover:to-cyan-700/30' },
+  'Cardiology': { bg: 'bg-gradient-to-br from-red-100 to-red-50 dark:from-red-900/30 dark:to-red-800/20', icon: 'text-red-600 dark:text-red-400', hover: 'group-hover:from-red-200 group-hover:to-red-100 dark:group-hover:from-red-800/40 dark:group-hover:to-red-700/30' },
+  'Dermatology': { bg: 'bg-gradient-to-br from-pink-100 to-pink-50 dark:from-pink-900/30 dark:to-pink-800/20', icon: 'text-pink-600 dark:text-pink-400', hover: 'group-hover:from-pink-200 group-hover:to-pink-100 dark:group-hover:from-pink-800/40 dark:group-hover:to-pink-700/30' },
+  'Pediatrics': { bg: 'bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-900/30 dark:to-purple-800/20', icon: 'text-purple-600 dark:text-purple-400', hover: 'group-hover:from-purple-200 group-hover:to-purple-100 dark:group-hover:from-purple-800/40 dark:group-hover:to-purple-700/30' },
+  'Orthopedics': { bg: 'bg-gradient-to-br from-orange-100 to-orange-50 dark:from-orange-900/30 dark:to-orange-800/20', icon: 'text-orange-600 dark:text-orange-400', hover: 'group-hover:from-orange-200 group-hover:to-orange-100 dark:group-hover:from-orange-800/40 dark:group-hover:to-orange-700/30' },
+  'Gynecology': { bg: 'bg-gradient-to-br from-rose-100 to-rose-50 dark:from-rose-900/30 dark:to-rose-800/20', icon: 'text-rose-600 dark:text-rose-400', hover: 'group-hover:from-rose-200 group-hover:to-rose-100 dark:group-hover:from-rose-800/40 dark:group-hover:to-rose-700/30' },
+  'Neurology': { bg: 'bg-gradient-to-br from-indigo-100 to-indigo-50 dark:from-indigo-900/30 dark:to-indigo-800/20', icon: 'text-indigo-600 dark:text-indigo-400', hover: 'group-hover:from-indigo-200 group-hover:to-indigo-100 dark:group-hover:from-indigo-800/40 dark:group-hover:to-indigo-700/30' },
+  'Psychiatry': { bg: 'bg-gradient-to-br from-violet-100 to-violet-50 dark:from-violet-900/30 dark:to-violet-800/20', icon: 'text-violet-600 dark:text-violet-400', hover: 'group-hover:from-violet-200 group-hover:to-violet-100 dark:group-hover:from-violet-800/40 dark:group-hover:to-violet-700/30' },
+  'ENT': { bg: 'bg-gradient-to-br from-teal-100 to-teal-50 dark:from-teal-900/30 dark:to-teal-800/20', icon: 'text-teal-600 dark:text-teal-400', hover: 'group-hover:from-teal-200 group-hover:to-teal-100 dark:group-hover:from-teal-800/40 dark:group-hover:to-teal-700/30' },
+};
+
+const getSpecialtyColors = (specialty: string) => {
+  return SPECIALTY_COLORS[specialty] || { 
+    bg: 'bg-gradient-to-br from-primary/20 to-primary/10 dark:from-primary/30 dark:to-primary/20', 
+    icon: 'text-primary', 
+    hover: 'group-hover:from-primary/30 group-hover:to-primary/20 dark:group-hover:from-primary/40 dark:group-hover:to-primary/30' 
+  };
+};
+
 // Memoized Specialty Card to prevent unnecessary re-renders
 const SpecialtyCard = React.memo(({ specialty }: { specialty: string }) => {
   const navigate = useNavigate();
   const Icon = getSpecialtyIcon(specialty);
+  const colors = getSpecialtyColors(specialty);
 
   const handleClick = () => {
     navigate(`/search?specialty=${encodeURIComponent(specialty)}`);
@@ -58,12 +81,12 @@ const SpecialtyCard = React.memo(({ specialty }: { specialty: string }) => {
       }}
       tabIndex={0}
       aria-label={`Browse ${specialty} clinics`}
-      className="group flex flex-col items-center justify-center p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md dark:shadow-none hover:border-primary/20 dark:hover:border-primary/30 transition-all duration-100 ease-out w-[calc((100vw-5rem)/3.5)] lg:w-[calc((100vw-10rem)/8.5)] h-[130px] flex-shrink-0 snap-center focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+      className="group flex flex-col items-center justify-center p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg dark:shadow-none hover:border-slate-200 dark:hover:border-slate-600 transition-all duration-200 ease-out w-[calc((100vw-5rem)/3.5)] lg:w-[calc((100vw-10rem)/8.5)] h-[130px] flex-shrink-0 snap-center focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none hover:-translate-y-1"
     >
-      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 dark:from-primary/30 dark:to-primary/20 flex items-center justify-center mb-3 group-hover:from-primary/30 group-hover:to-primary/20 dark:group-hover:from-primary/40 dark:group-hover:to-primary/30 transition-all duration-100 ease-out shadow-sm">
-        <Icon className="w-7 h-7 text-primary transition-transform duration-100 ease-out will-change-transform group-hover:scale-110" />
+      <div className={`w-14 h-14 rounded-full ${colors.bg} ${colors.hover} flex items-center justify-center mb-3 transition-all duration-200 ease-out shadow-sm`}>
+        <Icon className={`w-7 h-7 ${colors.icon} transition-transform duration-200 ease-out will-change-transform group-hover:scale-110`} strokeWidth={2.5} />
       </div>
-      <span className="text-[13px] font-bold text-slate-700 dark:text-slate-300 text-center leading-tight group-hover:text-primary transition-colors duration-100">
+      <span className="text-[13px] font-bold text-slate-700 dark:text-slate-300 text-center leading-tight group-hover:text-slate-900 dark:group-hover:text-white transition-colors duration-200">
         {specialty}
       </span>
     </button>

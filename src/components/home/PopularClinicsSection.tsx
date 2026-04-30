@@ -28,7 +28,7 @@ export function PopularClinicsSection() {
       <section className="py-16 bg-white dark:bg-background">
         <div className="container mx-auto">
           <div className="flex items-center gap-2 mb-8 justify-center">
-            <Sparkles className="h-6 w-6 text-primary" />
+            <Sparkles className="h-6 w-6 text-primary animate-pulse" />
             <h2 className="text-3xl font-bold text-slate-900 dark:text-white text-center">Most Popular Clinics</h2>
           </div>
           <p className="text-slate-500 dark:text-slate-400 text-center mb-10 max-w-2xl mx-auto">
@@ -53,17 +53,23 @@ export function PopularClinicsSection() {
   return (
     <section className="py-16 bg-white dark:bg-background">
       <div className="container mx-auto">
-        <div className="flex items-center gap-2 mb-8 justify-center">
+        <div className="flex items-center gap-2 mb-8 justify-center animate-in slide-in-from-bottom-4 duration-700">
           <Sparkles className="h-6 w-6 text-primary" />
           <h2 className="text-3xl font-bold text-slate-900 dark:text-white text-center">Most Popular Clinics</h2>
         </div>
-        <p className="text-slate-500 dark:text-slate-400 text-center mb-10 max-w-2xl mx-auto">
+        <p className="text-slate-500 dark:text-slate-400 text-center mb-10 max-w-2xl mx-auto animate-in slide-in-from-bottom-5 duration-700 delay-100 fill-mode-both">
           Discover top-rated healthcare facilities trusted by patients for their exceptional care and professional service.
         </p>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-          {clinics.map((clinic) => (
-            <ClinicCard key={clinic.id} clinic={clinic} layout="vertical" />
+          {clinics.map((clinic, index) => (
+            <div
+              key={clinic.id}
+              className="animate-in slide-in-from-bottom-6 duration-700 fill-mode-both hover:scale-[1.02] transition-transform duration-300"
+              style={{ animationDelay: `${index * 100 + 200}ms` }}
+            >
+              <ClinicCard clinic={clinic} layout="vertical" />
+            </div>
           ))}
         </div>
       </div>

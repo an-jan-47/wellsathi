@@ -133,7 +133,7 @@ export default function ClinicDashboard() {
               </div>
               <ClinicAppointments 
                 clinicId={clinic.id} 
-                appointments={todayAppointments.slice(0, 5)} 
+                appointments={todayAppointments} 
                 onUpdate={() => { refetchAppointments(); refetchAllAppointments(); }} 
               />
             </div>
