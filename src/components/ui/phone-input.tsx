@@ -209,16 +209,17 @@ PhoneInput.displayName = 'PhoneInput';
 export const validatePhoneNumber = (value: string | undefined) => {
   if (!value) return true; // Let required validation handle empty check if needed
   
+  const digitsOnly = value.replace(/\D/g, '');
+  if (digitsOnly.length === 10) return true; // Most common Indian mobile case
+  
   try {
-    const phoneNumber = parsePhoneNumberWithError(value);
-    
+    const phoneNumber = parsePhoneNumberWithError(value, 'IN');
     if (phoneNumber.country === 'IN') {
-      // Hard constraint for India: exactly 10 digits national number
       return phoneNumber.nationalNumber.length === 10;
     }
-    
     return phoneNumber.isValid();
   } catch (error) {
-    return false;
+    // Permissive fallback
+    return digitsOnly.length >= 7 && digitsOnly.length <= 15;
   }
 };

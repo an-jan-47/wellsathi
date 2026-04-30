@@ -40,9 +40,9 @@ interface Service {
   fee: number;
 }
 
-type Step = 1 | 2 | 3;
+type Step = 1 | 2;
 
-const STEP_LABELS = ['Select', 'Patient Info', 'Confirm'] as const;
+const STEP_LABELS = ['Select Appointment', 'Patient Details'] as const;
 
 /* ═══════════════════════════════════════════════ */
 export default function Book() {
@@ -148,12 +148,11 @@ export default function Book() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const goToStep3 = () => {
+  const submitBooking = () => {
     try {
       patientSchema.parse(formData);
       setErrors({});
-      setStep(3);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      handleConfirm();
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors: Record<string, string> = {};
@@ -161,6 +160,7 @@ export default function Book() {
           if (err.path[0]) fieldErrors[err.path[0] as string] = err.message;
         });
         setErrors(fieldErrors);
+        toast.error('Please fix the errors in the form before confirming.');
       }
     }
   };
@@ -282,9 +282,9 @@ export default function Book() {
       </div>
 
       <div className="container pb-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
           {/* ── Main content ── */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-7">
             {/* ═══ STEP 1: SELECT ═══ */}
             {step === 1 && (
               <div className="space-y-6 animate-fade-in">
@@ -515,114 +515,11 @@ export default function Book() {
                   <Button variant="outline" size="lg" className="flex-1" onClick={() => setStep(1)}>
                     <ArrowLeft className="h-4 w-4 mr-2" /> Back
                   </Button>
-                  <Button size="lg" className="flex-1" onClick={goToStep3}>
-                    Review & Confirm <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* ═══ STEP 3: CONFIRMATION ═══ */}
-            {step === 3 && (
-              <div className="space-y-6 animate-fade-in">
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle>Review & Confirm</CardTitle>
-                      <Button variant="ghost" size="sm" onClick={() => setStep(1)}>
-                        <Edit2 className="h-4 w-4 mr-1" /> Edit
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-5">
-                    {/* Clinic */}
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                      <div className="w-10 h-10 rounded-lg gradient-primary flex items-center justify-center flex-shrink-0">
-                        <span className="font-bold text-primary-foreground">{clinic.name.charAt(0)}</span>
-                      </div>
-                      <div>
-                        <p className="font-semibold text-foreground">{clinic.name}</p>
-                        <p className="text-xs text-muted-foreground">{clinic.address}, {clinic.city}</p>
-                      </div>
-                    </div>
-
-                    {/* Doctor */}
-                    {selectedDoctor && (
-                      <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                        <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center flex-shrink-0">
-                          <span className="text-sm font-bold text-primary-foreground">{selectedDoctor.name.charAt(0)}</span>
-                        </div>
-                        <div>
-                          <p className="font-semibold text-foreground">{selectedDoctor.name}</p>
-                          <p className="text-xs text-muted-foreground">{selectedDoctor.specialization}</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Fees Breakdown */}
-                    <div>
-                      <p className="text-sm font-medium text-foreground mb-2">Fees Breakdown</p>
-                      <div className="divide-y divide-border rounded-lg border border-border overflow-hidden">
-                        <div className="flex justify-between items-center px-3 py-2 text-sm bg-muted/30">
-                          <span>Consultation Fee</span>
-                          <span className="font-medium">₹{baseFee}</span>
-                        </div>
-                        {selectedServices.map(svc => (
-                          <div key={svc.id} className="flex justify-between items-center px-3 py-2 text-sm">
-                            <span>{svc.service_name}</span>
-                            <span className="font-medium">₹{svc.fee}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Appointment Details */}
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="p-3 rounded-lg bg-muted/50">
-                        <p className="text-xs text-muted-foreground mb-1">Date</p>
-                        <p className="font-semibold text-sm">{format(parseISO(selectedDate), 'EEE, MMM d, yyyy')}</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted/50">
-                        <p className="text-xs text-muted-foreground mb-1">Time</p>
-                        <p className="font-semibold text-sm">{selectedTime.slice(0, 5)}</p>
-                      </div>
-                    </div>
-
-                    {/* Patient */}
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="text-sm font-medium text-foreground">Patient Details</p>
-                        <Button variant="ghost" size="sm" onClick={() => setStep(2)}>
-                          <Edit2 className="h-3 w-3 mr-1" /> Edit
-                        </Button>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted/50 space-y-1 text-sm">
-                        <div className="flex justify-between"><span className="text-muted-foreground">Name</span><span className="font-medium">{formData.patientName}</span></div>
-                        <div className="flex justify-between"><span className="text-muted-foreground">Phone</span><span className="font-medium">{formData.patientPhone}</span></div>
-                        {formData.patientEmail && <div className="flex justify-between"><span className="text-muted-foreground">Email</span><span className="font-medium">{formData.patientEmail}</span></div>}
-                        {formData.age && <div className="flex justify-between"><span className="text-muted-foreground">Age</span><span className="font-medium">{formData.age}</span></div>}
-                        {formData.gender && <div className="flex justify-between"><span className="text-muted-foreground">Gender</span><span className="font-medium capitalize">{formData.gender}</span></div>}
-                        {formData.notes && <div className="flex justify-between"><span className="text-muted-foreground">Notes</span><span className="font-medium truncate max-w-[200px]">{formData.notes}</span></div>}
-                      </div>
-                    </div>
-
-                    {/* Total */}
-                    <div className="flex justify-between items-center p-4 rounded-xl bg-primary/5 border border-primary/20">
-                      <span className="font-medium text-foreground">Total Amount</span>
-                      <span className="text-xl font-bold text-primary">₹{totalFee}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <div className="flex gap-3">
-                  <Button variant="outline" size="lg" className="flex-1" onClick={() => setStep(2)}>
-                    <ArrowLeft className="h-4 w-4 mr-2" /> Back
-                  </Button>
                   <Button
                     size="lg"
-                    className="flex-1"
+                    className="flex-1 shadow-lg shadow-primary/20"
                     disabled={bookMutation.isPending}
-                    onClick={handleConfirm}
+                    onClick={submitBooking}
                   >
                     {bookMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Check className="h-4 w-4 mr-2" />}
                     Confirm Booking
@@ -632,81 +529,100 @@ export default function Book() {
             )}
           </div>
 
+
           {/* ── Sidebar ── */}
-          <div>
-            <Card variant="elevated" className="sticky top-20">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Booking Summary</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                {/* Clinic */}
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-md gradient-primary flex items-center justify-center flex-shrink-0">
-                    <span className="text-xs font-bold text-primary-foreground">{clinic.name.charAt(0)}</span>
+          <div className="lg:col-span-5">
+            <Card variant="elevated" className="sticky top-24 border-slate-200 dark:border-slate-800 shadow-xl dark:shadow-none overflow-hidden rounded-[24px]">
+              <div className="bg-slate-50 dark:bg-slate-800/50 p-5 border-b border-slate-100 dark:border-slate-800">
+                <CardTitle className="text-[20px] font-black text-slate-800 dark:text-white tracking-tight">Booking Summary</CardTitle>
+              </div>
+              <CardContent className="p-6 space-y-6">
+                
+                {/* Appointment Info with Edit Icon */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="font-bold text-slate-800 dark:text-white text-[15px]">Appointment Details</p>
+                    {step === 2 && (
+                      <Button variant="ghost" size="sm" onClick={() => setStep(1)} className="h-8 px-3 rounded-lg text-primary hover:bg-primary/10 font-bold text-[13px]">
+                        <Edit2 className="h-3.5 w-3.5 mr-1.5" /> Edit
+                      </Button>
+                    )}
                   </div>
-                  <div>
-                    <p className="font-medium text-foreground leading-tight">{clinic.name}</p>
-                    <p className="text-xs text-muted-foreground">{clinic.city}</p>
-                  </div>
-                </div>
-
-                <hr className="border-border" />
-
-                {/* Details */}
-                <div className="space-y-1.5">
-                  {selectedDoctor && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Doctor</span>
-                      <span className="font-medium">{selectedDoctor.name}</span>
+                  
+                  <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-100 dark:border-slate-700 space-y-3">
+                    {selectedDoctor && (
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                          <Stethoscope className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-[12px] font-medium text-slate-500 uppercase tracking-wider mb-0.5">Doctor</p>
+                          <p className="text-[14px] font-bold text-slate-800 dark:text-slate-200 leading-tight">{selectedDoctor.name}</p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className={`grid grid-cols-2 gap-3 ${selectedDoctor ? 'pt-3 border-t border-slate-200 dark:border-slate-700/50' : ''}`}>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                          <Calendar className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-[12px] font-medium text-slate-500 uppercase tracking-wider mb-0.5">Date</p>
+                          <p className="text-[14px] font-bold text-slate-800 dark:text-slate-200">{format(parseISO(selectedDate), 'MMM d, yyyy')}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400">
+                          <Clock className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-[12px] font-medium text-slate-500 uppercase tracking-wider mb-0.5">Time</p>
+                          <p className="text-[14px] font-bold text-slate-800 dark:text-slate-200">{selectedTime ? selectedTime.slice(0, 5) : '—'}</p>
+                        </div>
+                      </div>
                     </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Date</span>
-                    <span className="font-medium">{format(parseISO(selectedDate), 'MMM d, yyyy')}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Time</span>
-                    <span className="font-medium">{selectedTime ? selectedTime.slice(0, 5) : '—'}</span>
                   </div>
                 </div>
 
-                <hr className="border-border" />
+                <div className="h-[1px] w-full bg-slate-100 dark:bg-slate-800" />
 
-                {/* Fees */}
-                <div className="space-y-1.5">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Consultation</span>
-                    <span>₹{baseFee}</span>
-                  </div>
-                  {selectedServices.map(s => (
-                    <div key={s.id} className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">{s.service_name}</span>
-                      <span>₹{s.fee}</span>
+                {/* Fees Breakdown */}
+                <div className="space-y-4">
+                  <p className="font-bold text-slate-800 dark:text-white text-[15px]">Fees Breakdown</p>
+                  
+                  <div className="space-y-2.5">
+                    <div className="flex justify-between items-center text-[14px]">
+                      <span className="text-slate-600 dark:text-slate-400 font-medium">Consultation Fee</span>
+                      <span className="font-bold text-slate-800 dark:text-slate-200">₹{baseFee}</span>
                     </div>
-                  ))}
-                </div>
+                    
+                    {selectedServices.map(s => (
+                      <div key={s.id} className="flex justify-between items-center text-[14px]">
+                        <span className="text-slate-600 dark:text-slate-400 font-medium">{s.service_name}</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-200">₹{s.fee}</span>
+                      </div>
+                    ))}
+                  </div>
 
-                <hr className="border-border" />
-
-                {/* Total */}
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold text-foreground">Total</span>
-                  <span className="text-lg font-bold text-primary">₹{totalFee}</span>
+                  <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 flex justify-between items-center">
+                    <span className="font-black text-slate-800 dark:text-white text-[15px]">Total Amount</span>
+                    <span className="text-[22px] font-black text-primary">₹{totalFee}</span>
+                  </div>
                 </div>
 
                 {/* Payment Method */}
-                <hr className="border-border" />
-                <div className="rounded-xl border-2 border-primary bg-primary/5 p-3">
+                <div className="rounded-xl border-2 border-slate-100 dark:border-slate-800 p-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Building2 className="h-4 w-4 text-primary" />
+                    <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center flex-shrink-0">
+                      <IndianRupee className="h-4 w-4 text-slate-600 dark:text-slate-400" />
                     </div>
                     <div className="flex-1">
-                      <p className="font-medium text-foreground text-sm">Pay at Clinic</p>
-                      <p className="text-xs text-muted-foreground">Pay when you visit</p>
+                      <p className="font-bold text-slate-800 dark:text-white text-[14px]">Pay at Clinic</p>
+                      <p className="text-[12px] font-medium text-slate-500">No advance payment required</p>
                     </div>
-                    <div className="w-4 h-4 rounded-full border-2 border-primary flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-primary" />
+                    <div className="w-5 h-5 rounded-full border-[5px] border-primary flex items-center justify-center">
+                      <div className="w-full h-full bg-white dark:bg-slate-900 rounded-full" />
                     </div>
                   </div>
                 </div>
