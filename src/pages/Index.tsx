@@ -6,7 +6,8 @@ import { HeroSection } from '@/components/home/HeroSection';
 // Lazy load all sections for better performance
 const BrowseBySpecialty = lazy(() => import('@/components/home/BrowseBySpecialty').then(m => ({ default: m.BrowseBySpecialty })));
 const PopularClinicsSection = lazy(() => import('@/components/home/PopularClinicsSection').then(m => ({ default: m.PopularClinicsSection })));
-const FeaturesSection = lazy(() => import('@/components/home/FeaturesSection').then(m => ({ default: m.FeaturesSection })));
+const HowItWorksSection = lazy(() => import('@/components/home/HowItWorksSection').then(m => ({ default: m.HowItWorksSection })));
+const TrustSection = lazy(() => import('@/components/home/TrustSection').then(m => ({ default: m.TrustSection })));
 const CTASection = lazy(() => import('@/components/home/CTASection').then(m => ({ default: m.CTASection })));
 
 import { useAuthStore } from '@/stores/authStore';
@@ -24,7 +25,7 @@ const Index = () => {
   const navigate = useNavigate();
   const { user, roles, isInitialized, isLoading } = useAuthStore();
 
-  useDocumentTitle('Find & Book Top-Rated Clinics');
+  useDocumentTitle('Find & Book Clinics — Fees Shown Upfront');
 
   // Redirect clinic users to their dashboard
   useEffect(() => {
@@ -51,7 +52,11 @@ const Index = () => {
       </Suspense>
       
       <Suspense fallback={<SectionSkeleton height="400px" />}>
-        <FeaturesSection />
+        <HowItWorksSection />
+      </Suspense>
+      
+      <Suspense fallback={<SectionSkeleton height="350px" />}>
+        <TrustSection />
       </Suspense>
       
       {!user && (

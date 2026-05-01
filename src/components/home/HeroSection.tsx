@@ -1,10 +1,19 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Search, Grid, Loader2, Navigation } from 'lucide-react';
+import { MapPin, Search, Grid, Loader2, Navigation, Stethoscope, CheckCircle } from 'lucide-react';
 import { getUniqueCities } from '@/services/clinicService';
 import { SPECIALIZATIONS } from '@/constants';
 import { getSpecialtyIcon } from '@/constants/icons';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+
+// Top 5 quick-tap specialties for hero chips
+const QUICK_SPECIALTIES = [
+  'General Medicine',
+  'Dentistry',
+  'Dermatology',
+  'Gynecology',
+  'Orthopedics',
+];
 
 export function HeroSection() {
   const navigate = useNavigate();
@@ -69,15 +78,15 @@ export function HeroSection() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSearch = (e?: React.FormEvent) => {
+  const handleSearch = useCallback((e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const params = new URLSearchParams();
     if (location) params.set('location', location);
     if (specialty) params.set('specialty', specialty);
     navigate(`/search?${params.toString()}`);
-  };
+  }, [location, specialty, navigate]);
 
-  const handleGeolocation = () => {
+  const handleGeolocation = useCallback(() => {
     if (location || geolocationRequested) return;
 
     setGeolocationRequested(true);
@@ -110,20 +119,31 @@ export function HeroSection() {
         }
       );
     }
-  };
+  }, [location, geolocationRequested]);
 
-  const filteredCities = location.length > 2 
-    ? searchLocations 
-    : dbCities.filter((c) => c.toLowerCase().includes(location.toLowerCase()));
+  const filteredCities = useMemo(() => {
+    return location.length > 2 
+      ? searchLocations 
+      : dbCities.filter((c) => c.toLowerCase().includes(location.toLowerCase()));
+  }, [location, searchLocations, dbCities]);
 
-  const filteredSpecialties = SPECIALIZATIONS.filter((s) =>
-    s.toLowerCase().includes(specialty.toLowerCase())
-  );
+  const filteredSpecialties = useMemo(() => {
+    return SPECIALIZATIONS.filter((s) =>
+      s.toLowerCase().includes(specialty.toLowerCase())
+    );
+  }, [specialty]);
+
+  const handleQuickSpecialty = useCallback((spec: string) => {
+    const params = new URLSearchParams();
+    if (location) params.set('location', location);
+    params.set('specialty', spec);
+    navigate(`/search?${params.toString()}`);
+  }, [location, navigate]);
 
   return (
-    <section className="relative bg-background dark:bg-background pt-20 pb-12 md:pt-32 md:pb-18 min-h-[480px] md:min-h-[600px] overflow-hidden">
-      {/* Enhanced animated gradient background */}
-      <div className="absolute inset-0 top-0 w-full h-[600px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-white to-white dark:from-primary/10 dark:via-background dark:to-background pointer-events-none animate-gradient"></div>
+    <section className="relative bg-slate-50 dark:bg-background pt-16 pb-10 md:pt-20 md:pb-16 min-h-[460px] md:min-h-[580px] overflow-hidden">
+      {/* Animated gradient background */}
+      <div className="absolute inset-0 top-0 w-full h-[600px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-slate-50 to-slate-50 dark:from-primary/10 dark:via-background dark:to-background pointer-events-none animate-gradient"></div>
       
       {/* Floating orbs for depth */}
       <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-float-slow pointer-events-none"></div>
@@ -131,24 +151,37 @@ export function HeroSection() {
 
       <div className="container relative z-10">
         <div className="max-w-4xl mx-auto text-center">
-          {/* Trust Badge with enhanced animation */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-primary/10 to-blue-500/10 dark:from-primary/20 dark:to-blue-500/20 text-primary text-[12px] font-black uppercase tracking-widest mb-10 animate-fade-in hover:scale-105 transition-all duration-300 cursor-default shadow-sm hover:shadow-md">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-sm shadow-primary/50" />
-            Trusted by 10,000+ patients
+          {/* Improved trust strip with check icons */}
+          <div className="inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-5 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm text-slate-700 dark:text-slate-300 text-[11px] sm:text-[12px] font-bold tracking-wide mb-6 animate-fade-in cursor-default">
+            <span className="flex items-center gap-1.5">
+              <CheckCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+              <span>Fees shown upfront</span>
+            </span>
+            <span className="text-slate-300 dark:text-slate-600">·</span>
+            <span className="flex items-center gap-1.5">
+              <CheckCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+              <span>No signup required</span>
+            </span>
+            <span className="text-slate-300 dark:text-slate-600 hidden sm:inline">·</span>
+            <span className="hidden sm:flex items-center gap-1.5">
+              <CheckCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+              <span>Verified clinics only</span>
+            </span>
           </div>
 
-          {/* Main Headline with gradient text */}
-          <h1 className="text-[46px] md:text-[64px] font-black tracking-tight text-slate-900 dark:text-white leading-[1.1] mb-6 animate-in slide-in-from-bottom-4 duration-700 ease-out">
-            Your Health, <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-600 to-primary animate-gradient-x">Our Priority</span>
+          {/* Main headline — transparency positioning */}
+          <h1 className="text-[34px] sm:text-[46px] md:text-[60px] font-black tracking-tight text-slate-900 dark:text-white leading-[1.1] mb-5 animate-in slide-in-from-bottom-4 duration-700 ease-out">
+            Find a clinic near you.{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-teal-500 to-primary animate-gradient-x block sm:inline">
+              See the fee before you go.
+            </span>
           </h1>
 
-          <p className="text-[17px] text-slate-500 dark:text-slate-400 font-medium max-w-xl mx-auto mb-12 animate-in slide-in-from-bottom-5 duration-700 delay-150 fill-mode-both">
-            Find and book appointments with the best clinics near you.
-            <br className="hidden sm:block" />
-            Quick, easy, and hassle-free.
+          <p className="text-[15px] sm:text-[17px] text-slate-600 dark:text-slate-400 font-medium max-w-xl mx-auto mb-8 animate-in slide-in-from-bottom-5 duration-700 delay-150 fill-mode-both">
+            Search by area or specialty. Fees shown upfront. Book in under a minute.
           </p>
 
-          {/* Search Box with enhanced interactions */}
+          {/* Search Box */}
           <form
             onSubmit={handleSearch}
             aria-label="Search for clinics"
@@ -168,8 +201,8 @@ export function HeroSection() {
               </div>
               <input
                 id="location-search"
-                aria-label="Enter your city"
-                placeholder="Enter your city..."
+                aria-label="Enter your area"
+                placeholder="Your area — e.g., Noida, Dwarka"
                 value={location}
                 onFocus={() => {
                   setShowLocationDropdown(true);
@@ -186,6 +219,7 @@ export function HeroSection() {
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 max-h-60 overflow-y-auto custom-scrollbar z-50 py-2">
                   <div
                     className="flex items-center gap-2 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer text-primary text-sm font-medium border-b border-slate-50 dark:border-slate-700"
+                    onMouseDown={(e) => e.preventDefault()}
                     onClick={() => {
                       setGeolocationRequested(false);
                       handleGeolocation();
@@ -199,6 +233,7 @@ export function HeroSection() {
                       <div
                         key={city}
                         className="px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer text-slate-700 dark:text-slate-200 text-sm font-medium transition-colors"
+                        onMouseDown={(e) => e.preventDefault()}
                         onClick={() => {
                           setLocation(city);
                           setShowLocationDropdown(false);
@@ -209,7 +244,7 @@ export function HeroSection() {
                     ))
                   ) : (
                     <div className="px-4 py-3 text-sm text-slate-400 dark:text-slate-500">
-                      No locations found.
+                      {location.length > 0 ? "That's okay — just type your neighbourhood." : 'Type your area or neighbourhood'}
                     </div>
                   )}
                 </div>
@@ -222,12 +257,12 @@ export function HeroSection() {
               className="relative flex-1 w-full flex items-center pr-4 rounded-xl md:rounded-none bg-slate-50 dark:bg-slate-900 md:bg-transparent md:dark:bg-transparent"
             >
               <div className="pl-6 pr-2 py-4 flex items-center justify-center">
-                <Grid className="h-5 w-5 text-slate-400" />
+                <Stethoscope className="h-5 w-5 text-slate-400" />
               </div>
               <input
                 id="specialty-search"
-                aria-label="Specialty (optional)"
-                placeholder="Specialty (optional)"
+                aria-label="What do you need?"
+                placeholder="What do you need? e.g., Dentist"
                 value={specialty}
                 onFocus={() => setShowSpecialtyDropdown(true)}
                 onChange={(e) => {
@@ -246,6 +281,7 @@ export function HeroSection() {
                         <div
                           key={spec}
                           className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer text-slate-700 dark:text-slate-200 text-sm font-medium transition-colors"
+                          onMouseDown={(e) => e.preventDefault()}
                           onClick={() => {
                             setSpecialty(spec);
                             setShowSpecialtyDropdown(false);
@@ -268,13 +304,36 @@ export function HeroSection() {
 
             <button
               type="submit"
-              aria-label="Search clinics"
-              className="w-full md:w-auto mt-2 md:mt-0 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 text-white font-bold text-[15px] rounded-xl md:rounded-full px-8 py-4 flex items-center justify-center gap-2 transition-all duration-200 will-change-transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/30 dark:shadow-primary/20 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none hover:shadow-xl hover:shadow-primary/40 dark:hover:shadow-primary/30"
+              aria-label="Find clinics"
+              className="w-full md:w-auto md:min-w-[160px] mt-2 md:mt-0 bg-gradient-to-r from-primary to-teal-600 hover:from-primary/90 hover:to-teal-600/90 text-white font-bold text-[15px] rounded-xl md:rounded-full px-8 py-4 md:py-4 flex items-center justify-center gap-2 transition-all duration-200 will-change-transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/30 dark:shadow-primary/20 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none hover:shadow-xl hover:shadow-primary/40 dark:hover:shadow-primary/30"
             >
               <Search className="h-4 w-4 stroke-[3]" />
-              Search
+              Find Clinics
             </button>
           </form>
+
+          {/* Microcopy under search — reduces friction */}
+          <p className="text-[12px] text-slate-400 dark:text-slate-500 font-medium mt-4 animate-in slide-in-from-bottom-6 duration-700 delay-400 fill-mode-both">
+            No account needed to browse · Cancellation is free
+          </p>
+
+          {/* Quick specialty chips — high-intent shortcut */}
+          <div className="flex flex-wrap justify-center gap-2 mt-6 animate-in slide-in-from-bottom-6 duration-700 delay-500 fill-mode-both">
+            {QUICK_SPECIALTIES.map((spec) => {
+              const Icon = getSpecialtyIcon(spec);
+              return (
+                <button
+                  key={spec}
+                  type="button"
+                  onClick={() => handleQuickSpecialty(spec)}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[12px] sm:text-[13px] font-semibold text-slate-600 dark:text-slate-300 hover:border-primary/50 hover:text-primary hover:bg-primary/5 dark:hover:bg-primary/10 transition-all duration-200 shadow-sm hover:shadow-md active:scale-95"
+                >
+                  <Icon className="w-3.5 h-3.5 opacity-60" />
+                  {spec}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>

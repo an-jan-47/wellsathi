@@ -150,14 +150,14 @@ export function BrowseBySpecialty() {
   }, [isLoading]);
 
   return (
-    <section id="specialties" className="py-12 bg-white dark:bg-background" aria-label="Browse by Specialty">
+    <section id="specialties" className="py-12 bg-slate-50 dark:bg-background" aria-label="Browse by Specialty">
       <div className="container">
         <div className="text-center mb-10">
           <h2 className="text-[28px] md:text-[36px] font-black text-slate-900 dark:text-white tracking-tight mb-3">
-            Browse Clinics by Specialty
+            Find the right doctor for your problem
           </h2>
           <p className="text-slate-500 dark:text-slate-400 font-medium text-[15px]">
-            Find experienced doctors across all medical specialties.
+            Choose a specialty to see available clinics near you
           </p>
         </div>
 

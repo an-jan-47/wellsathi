@@ -23,7 +23,7 @@ export async function searchClinics(filters: SearchFilters): Promise<Clinic[]> {
 
   let queryBuilder = supabase
     .from('clinics')
-    .select('id, name, city, address, fees, rating, images, specializations, phone, is_approved', { count: 'exact' })
+    .select('id, name, city, address, fees, rating, images, specializations, phone, is_approved, reviews(count)', { count: 'exact' })
     .eq('is_approved', true)
     .range(from, to);
 
@@ -72,7 +72,7 @@ export async function searchClinics(filters: SearchFilters): Promise<Clinic[]> {
   if (data?.length === 0 && filters.query) {
     let fallbackBuilder = supabase
       .from('clinics')
-      .select('id, name, city, address, fees, rating, images, specializations, phone, is_approved')
+      .select('id, name, city, address, fees, rating, images, specializations, phone, is_approved, reviews(count)')
       .eq('is_approved', true);
     
     if (filters.location) fallbackBuilder = fallbackBuilder.ilike('city', `%${filters.location}%`);
@@ -98,7 +98,13 @@ export async function searchClinics(filters: SearchFilters): Promise<Clinic[]> {
     }
   }
 
-  return (data as Clinic[]) || [];
+  // Flatten review count from Supabase join
+  const clinics = ((data as any[]) || []).map((c) => ({
+    ...c,
+    review_count: c.reviews?.[0]?.count ?? 0,
+    reviews: undefined,
+  })) as Clinic[];
+  return clinics;
 }
 
 /**
@@ -194,12 +200,17 @@ export async function getUniqueCities(): Promise<string[]> {
 export async function getPopularClinics(limit = 4): Promise<Clinic[]> {
   const { data, error } = await supabase
     .from('clinics')
-    .select('*')
+    .select('*, reviews(count)')
     .eq('is_approved', true)
     .not('rating', 'is', null)
     .order('rating', { ascending: false })
     .limit(limit);
     
   if (error) throw error;
-  return (data as Clinic[]) || [];
+  // Flatten review count from Supabase join
+  return ((data as any[]) || []).map((c) => ({
+    ...c,
+    review_count: c.reviews?.[0]?.count ?? 0,
+    reviews: undefined,
+  })) as Clinic[];
 }

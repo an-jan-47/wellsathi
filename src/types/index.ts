@@ -31,6 +31,7 @@ export interface Clinic {
   specializations: string[] | null;
   is_approved: boolean;
   rating: number | null;
+  review_count?: number;
   image_url: string | null;
   images: string[] | null;
   certificates: string[] | null;

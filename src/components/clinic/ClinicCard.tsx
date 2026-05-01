@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Star, Calendar, CheckCircle2, IndianRupee } from 'lucide-react';
+import { MapPin, Star, CheckCircle2, Clock } from 'lucide-react';
 import type { Clinic } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { getSpecialtyIcon } from '@/constants/icons';
@@ -18,7 +18,14 @@ const formatTime = (timeStr: string) => {
   return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 };
 
-function NextAvailableSlot({ clinicId }: { clinicId: string }) {
+/* ─── Next Available Slot with Open/Closed callback ─── */
+function NextAvailableSlot({ 
+  clinicId, 
+  onStatusChange 
+}: { 
+  clinicId: string; 
+  onStatusChange?: (hasSlotToday: boolean) => void;
+}) {
   const [nextSlot, setNextSlot] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -49,6 +56,7 @@ function NextAvailableSlot({ clinicId }: { clinicId: string }) {
           const availableSlot = (slots as any[]).find((s) => s.is_available && s.start_time > currentTimeStr);
           if (availableSlot && !cancelled) {
             setNextSlot(`Today, ${formatTime(availableSlot.start_time)}`);
+            onStatusChange?.(true);
             return;
           }
         }
@@ -68,6 +76,7 @@ function NextAvailableSlot({ clinicId }: { clinicId: string }) {
           );
           if (availableTmrw && !cancelled) {
             setNextSlot(`Tomorrow, ${formatTime(availableTmrw.start_time)}`);
+            onStatusChange?.(false);
           }
         }
       } catch (err) {
@@ -79,7 +88,7 @@ function NextAvailableSlot({ clinicId }: { clinicId: string }) {
 
     fetchNextSlot();
     return () => { cancelled = true; };
-  }, [clinicId]);
+  }, [clinicId, onStatusChange]);
 
   if (loading) {
     return (
@@ -139,12 +148,37 @@ function TopRatedBadge({ size = 'sm' }: { size?: 'sm' | 'xs' }) {
   );
 }
 
+/* ─── Open Status Pill ─── */
+function OpenStatusPill({ isOpen }: { isOpen: boolean | null }) {
+  if (isOpen === null) return null; // Still loading, don't show
+  
+  if (isOpen) {
+    return (
+      <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-500/90 backdrop-blur-sm shadow-sm">
+        <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+        <span className="text-[10px] font-bold text-white uppercase tracking-wider leading-none">
+          Open
+        </span>
+      </div>
+    );
+  }
+
+  return null; // Don't show "closed" — only assert open when we have proof
+}
+
 export function ClinicCard({ clinic, layout = 'horizontal' }: ClinicCardProps) {
   const isVertical = layout === 'vertical';
-  const isTopRated = (clinic.rating ?? 0) > 4;
+  const reviewCount = clinic.review_count ?? 0;
+  // Only show TopRated if enough reviews to be credible
+  const isTopRated = (clinic.rating ?? 0) > 4 && reviewCount >= 10;
   const hasRating = (clinic.rating ?? 0) > 0;
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [isOpenNow, setIsOpenNow] = useState<boolean | null>(null);
+
+  const handleSlotStatus = useCallback((hasSlotToday: boolean) => {
+    setIsOpenNow(hasSlotToday);
+  }, []);
 
   return (
     <Link
@@ -187,18 +221,26 @@ export function ClinicCard({ clinic, layout = 'horizontal' }: ClinicCardProps) {
             </div>
           )}
 
-          {/* Rating Badge — always on image top-right */}
+          {/* Open Status Pill — top-left on image */}
+          <OpenStatusPill isOpen={isOpenNow} />
+
+          {/* Rating Badge + Review Count — top-right on image */}
           {hasRating && (
             <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-md shadow-sm flex items-center gap-1 px-2 py-1 rounded-full">
               <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
               <span className="text-[13px] font-black text-slate-800 leading-none">
                 {Number(clinic.rating).toFixed(1)}
               </span>
+              {reviewCount > 0 && (
+                <span className="text-[11px] font-semibold text-slate-400 leading-none">
+                  ({reviewCount})
+                </span>
+              )}
             </div>
           )}
 
-          {/* Mobile badges — top-left on image */}
-          <div className="absolute top-3 left-3 flex sm:hidden items-center gap-1.5">
+          {/* Mobile badges — below open pill */}
+          <div className={`absolute ${isOpenNow ? 'top-10' : 'top-3'} left-3 flex sm:hidden items-center gap-1.5`} style={isOpenNow ? { top: '2.75rem' } : {}}>
             <VerifiedBadge size="xs" />
             {isTopRated && <TopRatedBadge size="xs" />}
           </div>
@@ -243,11 +285,6 @@ export function ClinicCard({ clinic, layout = 'horizontal' }: ClinicCardProps) {
                     </span>
                   );
                 })}
-                {clinic.specializations.length > 3 && (
-                  <span className="px-2.5 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 rounded-full text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                    +{clinic.specializations.length - 3}
-                  </span>
-                )}
               </div>
             )}
           </div>
@@ -275,16 +312,17 @@ export function ClinicCard({ clinic, layout = 'horizontal' }: ClinicCardProps) {
 
               {/* Next slot */}
               <div className="min-w-0">
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5 leading-none">
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5 leading-none flex items-center gap-1">
+                  <Clock className="w-2.5 h-2.5" />
                   Next Slot
                 </p>
-                <NextAvailableSlot clinicId={clinic.id} />
+                <NextAvailableSlot clinicId={clinic.id} onStatusChange={handleSlotStatus} />
               </div>
             </div>
 
             {/* CTA */}
-            <span className="shrink-0 bg-primary text-white font-bold text-[13px] px-5 py-2.5 rounded-xl shadow-sm flex items-center justify-center active:scale-95 transition-transform whitespace-nowrap">
-              Book Visit
+            <span className="shrink-0 bg-primary hover:bg-primary/90 text-white font-bold text-[13px] px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg flex items-center justify-center active:scale-95 transition-all duration-200 whitespace-nowrap">
+              View Slots
             </span>
           </div>
         </div>
