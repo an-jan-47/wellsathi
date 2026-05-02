@@ -43,41 +43,49 @@ function NextAvailableSlot({
         if (!doctors?.length) return;
 
         const firstDoctorId = doctors[0].id;
-        const today = new Date().toISOString().split('T')[0];
+        const now = new Date();
+        const currentTimeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:00`;
 
-        const { data: slots, error } = await supabase.rpc('get_doctor_slots', {
-          p_doctor_id: firstDoctorId,
-          p_date: today,
-        });
+        // Check today, tomorrow, and day after tomorrow (3 days total)
+        for (let dayOffset = 0; dayOffset < 3; dayOffset++) {
+          const checkDate = new Date();
+          checkDate.setDate(checkDate.getDate() + dayOffset);
+          const dateStr = checkDate.toISOString().split('T')[0];
 
-        if (!error && slots?.length) {
-          const now = new Date();
-          const currentTimeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:00`;
-          const availableSlot = (slots as any[]).find((s) => s.is_available && s.start_time > currentTimeStr);
-          if (availableSlot && !cancelled) {
-            setNextSlot(`Today, ${formatTime(availableSlot.start_time)}`);
-            onStatusChange?.(true);
-            return;
+          const { data: slots, error } = await supabase.rpc('get_doctor_slots', {
+            p_doctor_id: firstDoctorId,
+            p_date: dateStr,
+          });
+
+          if (!error && slots?.length) {
+            // For today, check if slot is in the future
+            const availableSlot = (slots as any[]).find((s) => 
+              s.is_available && (dayOffset > 0 || s.start_time > currentTimeStr)
+            );
+            
+            if (availableSlot && !cancelled) {
+              let displayText = '';
+              if (dayOffset === 0) {
+                displayText = `Today, ${formatTime(availableSlot.start_time)}`;
+                onStatusChange?.(true);
+              } else if (dayOffset === 1) {
+                displayText = `Tomorrow, ${formatTime(availableSlot.start_time)}`;
+                onStatusChange?.(false);
+              } else {
+                const dayName = checkDate.toLocaleDateString('en-US', { weekday: 'short' });
+                displayText = `${dayName}, ${formatTime(availableSlot.start_time)}`;
+                onStatusChange?.(false);
+              }
+              setNextSlot(displayText);
+              return;
+            }
           }
         }
 
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const tomorrowStr = tomorrow.toISOString().split('T')[0];
-
-        const { data: tmrwSlots, error: tmrwError } = await supabase.rpc(
-          'get_doctor_slots',
-          { p_doctor_id: firstDoctorId, p_date: tomorrowStr }
-        );
-
-        if (!tmrwError && tmrwSlots?.length) {
-          const availableTmrw = (tmrwSlots as any[]).find(
-            (s) => s.is_available
-          );
-          if (availableTmrw && !cancelled) {
-            setNextSlot(`Tomorrow, ${formatTime(availableTmrw.start_time)}`);
-            onStatusChange?.(false);
-          }
+        // No slots found in next 3 days
+        if (!cancelled) {
+          setNextSlot(null);
+          onStatusChange?.(false);
         }
       } catch (err) {
         console.error('Failed to fetch slot', err);
@@ -92,19 +100,19 @@ function NextAvailableSlot({
 
   if (loading) {
     return (
-      <span className="text-slate-300 animate-pulse bg-slate-100 rounded w-20 h-4 inline-block" />
+      <span className="text-slate-300 animate-pulse bg-slate-100 dark:bg-slate-700 rounded w-20 h-4 inline-block" />
     );
   }
   if (!nextSlot) {
     return (
-      <span className="text-slate-400 text-[12px] font-medium">
-        No slots today
+      <span className="text-slate-400 dark:text-slate-500 text-[12px] font-medium">
+        No slots soon
       </span>
     );
   }
 
   return (
-    <span className="text-slate-800 text-[12px] font-bold">{nextSlot}</span>
+    <span className="text-slate-800 dark:text-slate-100 text-[12px] font-bold">{nextSlot}</span>
   );
 }
 

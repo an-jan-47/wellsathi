@@ -394,6 +394,51 @@
   .dark .custom-scrollbar {
     scrollbar-color: hsl(220 20% 30%) transparent;
   }
+
+  /* Global autohide scrollbar for all elements */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  *:hover {
+    scrollbar-color: hsl(220 10% 80%) transparent;
+  }
+
+  .dark *:hover {
+    scrollbar-color: hsl(220 20% 30%) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 4px;
+    transition: background 0.3s ease;
+  }
+
+  *:hover::-webkit-scrollbar-thumb {
+    background: hsl(220 10% 85%);
+  }
+
+  *:hover::-webkit-scrollbar-thumb:hover {
+    background: hsl(220 10% 75%);
+  }
+
+  .dark *:hover::-webkit-scrollbar-thumb {
+    background: hsl(220 20% 35%);
+  }
+
+  .dark *:hover::-webkit-scrollbar-thumb:hover {
+    background: hsl(220 20% 45%);
+  }
 }
 
 /* Custom animations */

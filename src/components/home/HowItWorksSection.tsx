@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Search, CalendarCheck, CheckCircle } from 'lucide-react';
+import { Search, CalendarCheck, CheckCircle, ArrowRight } from 'lucide-react';
 
 const STEPS = [
   {
@@ -76,46 +76,82 @@ export function HowItWorksSection() {
           </p>
         </div>
 
-        {/* Steps */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 relative">
-          {/* Connector line — desktop only */}
-          <div className="hidden md:block absolute top-[56px] left-[16.66%] right-[16.66%] h-[2px] bg-gradient-to-r from-primary/20 via-blue-500/20 to-emerald-500/20 dark:from-primary/30 dark:via-blue-500/30 dark:to-emerald-500/30 z-0" />
-
+        {/* Steps with arrow connectors */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6 relative">
           {STEPS.map((step, index) => (
-            <div
-              key={step.number}
-              className={`relative z-10 flex flex-col items-center text-center group transition-all duration-700 ${
-                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-              }`}
-              style={{ transitionDelay: `${index * 150 + 200}ms` }}
-            >
-              {/* Step number + icon container */}
-              <div className="relative mb-6">
-                {/* Outer ring */}
-                <div
-                  className={`w-[88px] h-[88px] md:w-[96px] md:h-[96px] rounded-[28px] bg-gradient-to-br ${step.color} flex items-center justify-center group-hover:-translate-y-1 group-hover:shadow-xl transition-all duration-300 ease-out border border-white/60 dark:border-slate-700/60 shadow-lg`}
-                >
-                  <step.icon
-                    className={`h-9 w-9 md:h-10 md:w-10 ${step.iconColor} stroke-[1.8] group-hover:scale-110 transition-transform duration-300`}
-                  />
+            <div key={step.number} className="flex items-center">
+              {/* Step Card */}
+              <div
+                className={`relative z-10 flex flex-col items-center text-center group transition-all duration-700 flex-1 ${
+                  isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                }`}
+                style={{ transitionDelay: `${index * 150 + 200}ms` }}
+              >
+                {/* Step number + icon container */}
+                <div className="relative mb-6">
+                  {/* Outer ring */}
+                  <div
+                    className={`w-[88px] h-[88px] md:w-[96px] md:h-[96px] rounded-[28px] bg-gradient-to-br ${step.color} flex items-center justify-center group-hover:-translate-y-1 group-hover:shadow-xl transition-all duration-300 ease-out border border-white/60 dark:border-slate-700/60 shadow-lg`}
+                  >
+                    <step.icon
+                      className={`h-9 w-9 md:h-10 md:w-10 ${step.iconColor} stroke-[1.8] group-hover:scale-110 transition-transform duration-300`}
+                    />
+                  </div>
+                  {/* Step number badge */}
+                  <div className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 shadow-sm flex items-center justify-center">
+                    <span className="text-[11px] font-black text-slate-500 dark:text-slate-400">
+                      {step.number}
+                    </span>
+                  </div>
                 </div>
-                {/* Step number badge */}
-                <div className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 shadow-sm flex items-center justify-center">
-                  <span className="text-[11px] font-black text-slate-500 dark:text-slate-400">
-                    {step.number}
-                  </span>
-                </div>
+
+                {/* Title */}
+                <h3 className="text-[18px] md:text-[20px] font-extrabold text-slate-900 dark:text-white mb-2.5 group-hover:text-primary transition-colors duration-300 leading-tight">
+                  {step.title}
+                </h3>
+
+                {/* Description */}
+                <p className="text-[13px] md:text-[14px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-[300px]">
+                  {step.description}
+                </p>
               </div>
 
-              {/* Title */}
-              <h3 className="text-[18px] md:text-[20px] font-extrabold text-slate-900 dark:text-white mb-2.5 group-hover:text-primary transition-colors duration-300 leading-tight">
-                {step.title}
-              </h3>
+              {/* Arrow connector - only show between steps, not after last step */}
+              {index < STEPS.length - 1 && (
+                <div
+                  className={`hidden md:flex items-center justify-center mx-4 transition-all duration-700 ${
+                    isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'
+                  }`}
+                  style={{ transitionDelay: `${index * 150 + 350}ms` }}
+                >
+                  <div className="relative">
+                    {/* Animated dashed line */}
+                    <div className="w-12 h-[2px] bg-gradient-to-r from-slate-300 to-slate-200 dark:from-slate-600 dark:to-slate-700 relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/40 to-transparent animate-shimmer" />
+                    </div>
+                    {/* Arrow head */}
+                    <ArrowRight className="absolute -right-2 top-1/2 -translate-y-1/2 w-5 h-5 text-primary animate-pulse-soft" />
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
 
-              {/* Description */}
-              <p className="text-[13px] md:text-[14px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-[300px]">
-                {step.description}
-              </p>
+        {/* Mobile journey indicator */}
+        <div className="md:hidden flex flex-col items-center gap-4 mt-8">
+          {[0, 1].map((index) => (
+            <div
+              key={index}
+              className={`flex flex-col items-center transition-all duration-700 ${
+                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+              }`}
+              style={{ transitionDelay: `${index * 150 + 600}ms` }}
+            >
+              <div className="w-[2px] h-8 bg-gradient-to-b from-slate-300 to-slate-200 dark:from-slate-600 dark:to-slate-700 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/40 to-transparent animate-shimmer" />
+              </div>
+              <ArrowRight className="w-5 h-5 text-primary rotate-90 animate-pulse-soft" />
             </div>
           ))}
         </div>

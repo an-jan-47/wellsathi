@@ -169,10 +169,10 @@ export function Header() {
           ) : (
             <div className="flex items-center gap-4">
               <Link to="/auth" className="text-[14.5px] font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors duration-200 px-2">
-                Sign In
+                Login
               </Link>
-              <Link to="/auth?mode=signup" className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 text-white text-[14.5px] font-bold px-6 py-2.5 rounded-full transition-all duration-200 active:scale-95 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40">
-                Get Started
+              <Link to="/auth?mode=signup" className="bg-gradient-to-r from-primary to-teal-600 hover:from-primary/90 hover:to-teal-600/90 text-white font-bold text-[14.5px] rounded-full px-6 py-2.5 flex items-center justify-center gap-2 transition-all duration-200 will-change-transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/30 dark:shadow-primary/20 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none hover:shadow-xl hover:shadow-primary/40 dark:hover:shadow-primary/30">
+                Sign Up
               </Link>
             </div>
           )}
@@ -279,17 +279,17 @@ export function Header() {
               <div className="flex flex-col gap-3 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
                 <Link
                   to="/auth"
-                  className="px-4 py-3 text-[15px] font-bold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 text-center rounded-xl"
+                  className="px-4 py-3 text-[15px] font-bold text-slate-700 dark:text-slate-200 border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-center rounded-xl transition-all duration-200"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Sign In
+                  Login
                 </Link>
                 <Link
                   to="/auth?mode=signup"
-                  className="px-4 py-3 text-[15px] font-bold text-white bg-primary text-center rounded-xl shadow-md"
+                  className="px-4 py-3 text-[15px] font-bold text-white bg-gradient-to-r from-primary to-teal-600 hover:from-primary/90 hover:to-teal-600/90 text-center rounded-xl shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all duration-200 active:scale-95"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Get Started
+                  Sign Up
                 </Link>
                 <div className="px-4 py-2">
                   <ThemeToggle />

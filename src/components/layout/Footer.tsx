@@ -20,18 +20,18 @@ export function Footer() {
                </span>
             </Link>
             <p className="text-muted-foreground text-sm max-w-sm mb-4 leading-relaxed">
-              Your trusted companion for finding the best healthcare. Book appointments with top clinics near you in seconds.
+              Your trusted companion for finding the best healthcare all at one place.
             </p>
             
             {/* Social Links */}
             <div className="flex items-center gap-3 mb-4">
-              <a href="#" className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-200 group">
+              <a href="https://www.facebook.com/people/WellSathi/61577843823496/" className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-200 group">
                 <Facebook className="w-4 h-4 text-slate-600 dark:text-slate-400 group-hover:text-white transition-colors" />
               </a>
               <a href="#" className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-200 group">
                 <Twitter className="w-4 h-4 text-slate-600 dark:text-slate-400 group-hover:text-white transition-colors" />
               </a>
-              <a href="#" className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-200 group">
+              <a href="https://www.instagram.com/wellsathi_/" className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-200 group">
                 <Instagram className="w-4 h-4 text-slate-600 dark:text-slate-400 group-hover:text-white transition-colors" />
               </a>
               <a href="#" className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-all duration-200 group">
