@@ -1,19 +1,10 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Search, Grid, Loader2, Navigation, Stethoscope, CheckCircle } from 'lucide-react';
+import { MapPin, Search, Loader2, Navigation, Stethoscope, CheckCircle } from 'lucide-react';
 import { getUniqueCities } from '@/services/clinicService';
 import { SPECIALIZATIONS } from '@/constants';
 import { getSpecialtyIcon } from '@/constants/icons';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
-
-// Top 5 quick-tap specialties for hero chips
-const QUICK_SPECIALTIES = [
-  'General Medicine',
-  'Dentistry',
-  'Dermatology',
-  'Gynecology',
-  'Orthopedics',
-];
 
 export function HeroSection() {
   const navigate = useNavigate();
@@ -46,13 +37,18 @@ export function HeroSection() {
       setIsLoadingLocation(true);
       fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-          debouncedLocation
-        )}&countrycodes=in&featuretype=city&limit=5`
+          debouncedLocation + ' Delhi NCR'
+        )}&countrycodes=in&featuretype=city&limit=8`
       )
         .then((res) => res.json())
         .then((data) => {
-          // Extract the first part of the display name (usually the city name)
-          const places = data.map((d: any) => d.display_name.split(',')[0].trim());
+          const places = data
+            .map((d: any) => d.display_name.split(',')[0].trim())
+            .filter((place: string) => {
+              const lowerPlace = place.toLowerCase();
+              const delhiNCRKeywords = ['delhi', 'noida', 'gurgaon', 'gurugram', 'faridabad', 'ghaziabad', 'greater noida', 'dwarka', 'rohini', 'janakpuri', 'saket', 'vasant kunj', 'nehru place', 'connaught place', 'karol bagh'];
+              return delhiNCRKeywords.some(keyword => lowerPlace.includes(keyword));
+            });
           setSearchLocations(Array.from(new Set(places as string[])));
           setIsLoadingLocation(false);
         })
@@ -78,11 +74,12 @@ export function HeroSection() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSearch = useCallback((e?: React.FormEvent) => {
+  const handleSearch = useCallback((e?: React.FormEvent, overrideSpecialty?: string) => {
     if (e) e.preventDefault();
     const params = new URLSearchParams();
     if (location) params.set('location', location);
-    if (specialty) params.set('specialty', specialty);
+    const specialtyToUse = overrideSpecialty || specialty;
+    if (specialtyToUse) params.set('specialty', specialtyToUse);
     navigate(`/search?${params.toString()}`);
   }, [location, specialty, navigate]);
 
@@ -133,13 +130,6 @@ export function HeroSection() {
     );
   }, [specialty]);
 
-  const handleQuickSpecialty = useCallback((spec: string) => {
-    const params = new URLSearchParams();
-    if (location) params.set('location', location);
-    params.set('specialty', spec);
-    navigate(`/search?${params.toString()}`);
-  }, [location, navigate]);
-
   return (
     <section className="relative bg-slate-50 dark:bg-background pt-16 pb-10 md:pt-20 md:pb-16 min-h-[460px] md:min-h-[580px] overflow-hidden">
       {/* Animated gradient background */}
@@ -185,7 +175,7 @@ export function HeroSection() {
           <form
             onSubmit={handleSearch}
             aria-label="Search for clinics"
-            className="flex flex-col md:flex-row items-center max-w-[700px] mx-auto bg-white dark:bg-slate-800 rounded-2xl md:rounded-full p-2 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_30px_-10px_rgba(0,0,0,0.3)] border border-slate-100 dark:border-slate-700 animate-in slide-in-from-bottom-6 duration-700 delay-300 fill-mode-both relative z-20 hover:shadow-[0_12px_40px_-10px_rgba(0,0,0,0.15)] dark:hover:shadow-[0_12px_40px_-10px_rgba(0,0,0,0.4)] transition-all duration-300 gap-2 md:gap-0 group"
+            className="flex flex-col md:flex-row items-center max-w-[700px] mx-auto bg-white dark:bg-slate-800 rounded-2xl md:rounded-full p-2 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_30px_-10px_rgba(0,0,0,0.3)] border border-slate-100 dark:border-slate-700 animate-in slide-in-from-bottom-6 duration-700 delay-300 fill-mode-both relative hover:shadow-[0_12px_40px_-10px_rgba(0,0,0,0.15)] dark:hover:shadow-[0_12px_40px_-10px_rgba(0,0,0,0.4)] transition-all duration-300 gap-2 md:gap-0 group"
           >
             {/* Location Input */}
             <div
@@ -216,7 +206,7 @@ export function HeroSection() {
               />
               {/* Location Dropdown */}
               {showLocationDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 max-h-60 overflow-y-auto custom-scrollbar z-50 py-2">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 max-h-60 overflow-y-auto custom-scrollbar z-[9999] py-2">
                   <div
                     className="flex items-center gap-2 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer text-primary text-sm font-medium border-b border-slate-50 dark:border-slate-700"
                     onMouseDown={(e) => e.preventDefault()}
@@ -269,11 +259,17 @@ export function HeroSection() {
                   setSpecialty(e.target.value);
                   setShowSpecialtyDropdown(true);
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && specialty) {
+                    e.preventDefault();
+                    handleSearch();
+                  }
+                }}
                 className="w-full bg-transparent text-[15px] font-medium text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none h-full py-4"
               />
               {/* Specialty Dropdown */}
               {showSpecialtyDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 max-h-60 overflow-y-auto custom-scrollbar z-50 py-2">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 max-h-60 overflow-y-auto custom-scrollbar z-[9999] py-2">
                   {filteredSpecialties.length > 0 ? (
                     filteredSpecialties.map((spec) => {
                       const Icon = getSpecialtyIcon(spec);
@@ -285,7 +281,7 @@ export function HeroSection() {
                           onClick={() => {
                             setSpecialty(spec);
                             setShowSpecialtyDropdown(false);
-                            setTimeout(() => handleSearch(), 100);
+                            handleSearch(undefined, spec);
                           }}
                         >
                           <Icon className="w-4 h-4 text-primary opacity-70 shrink-0" />
@@ -316,24 +312,6 @@ export function HeroSection() {
           <p className="text-[12px] text-slate-400 dark:text-slate-500 font-medium mt-4 animate-in slide-in-from-bottom-6 duration-700 delay-400 fill-mode-both">
             No account needed to browse · Cancellation is free
           </p>
-
-          {/* Quick specialty chips — high-intent shortcut */}
-          <div className="flex flex-wrap justify-center gap-2 mt-6 animate-in slide-in-from-bottom-6 duration-700 delay-500 fill-mode-both">
-            {QUICK_SPECIALTIES.map((spec) => {
-              const Icon = getSpecialtyIcon(spec);
-              return (
-                <button
-                  key={spec}
-                  type="button"
-                  onClick={() => handleQuickSpecialty(spec)}
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[12px] sm:text-[13px] font-semibold text-slate-600 dark:text-slate-300 hover:border-primary/50 hover:text-primary hover:bg-primary/5 dark:hover:bg-primary/10 transition-all duration-200 shadow-sm hover:shadow-md active:scale-95"
-                >
-                  <Icon className="w-3.5 h-3.5 opacity-60" />
-                  {spec}
-                </button>
-              );
-            })}
-          </div>
         </div>
       </div>
     </section>

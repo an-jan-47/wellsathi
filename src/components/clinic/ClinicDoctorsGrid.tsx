@@ -57,12 +57,21 @@ function DoctorCard({ doctor, onViewProfile }: { doctor: Doctor; onViewProfile: 
       className="bg-white border border-slate-200/80 rounded-[14px] sm:rounded-[16px] overflow-hidden hover:shadow-lg hover:border-slate-300 transition-all group text-left w-full flex flex-col cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
     >
       {/* Avatar banner — 10% taller */}
-      <div className="h-[88px] sm:h-[110px] bg-gradient-to-br from-primary/15 to-primary/5 relative flex items-end">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-[40px] sm:text-[48px] font-black text-primary/15 select-none">
-            {doctor.name.charAt(0)}
-          </span>
-        </div>
+      <div className="h-[88px] sm:h-[110px] bg-gradient-to-br from-primary/15 to-primary/5 relative flex items-end overflow-hidden">
+        {doctor.image_url ? (
+          <img
+            src={doctor.image_url}
+            alt={doctor.name}
+            loading="lazy"
+            className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-[40px] sm:text-[48px] font-black text-primary/15 select-none">
+              {doctor.name.charAt(0)}
+            </span>
+          </div>
+        )}
         {/* Specialization badge */}
         <div className="relative z-10 mx-2.5 sm:mx-3 mb-2.5 sm:mb-3">
           <span className="px-2 py-0.5 bg-primary text-white text-[8px] sm:text-[9px] font-black uppercase tracking-widest rounded-md shadow-sm">
@@ -118,8 +127,17 @@ function DoctorProfileDialog({
       <DialogContent className="w-[calc(100vw-32px)] sm:max-w-[420px] rounded-[20px] border-slate-100 p-0 overflow-hidden shadow-2xl">
         {/* Header with gradient */}
         <div className="bg-gradient-to-br from-primary/12 to-primary/4 px-6 pt-6 pb-5 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center shadow-lg shadow-primary/10 mx-auto mb-3 border border-slate-100">
-            <span className="text-[28px] font-black text-primary">{doctor.name.charAt(0)}</span>
+          <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center shadow-lg shadow-primary/10 mx-auto mb-3 border border-slate-100 overflow-hidden relative">
+            {doctor.image_url ? (
+              <img
+                src={doctor.image_url}
+                alt={doctor.name}
+                loading="lazy"
+                className="w-full h-full object-cover object-top"
+              />
+            ) : (
+              <span className="text-[28px] font-black text-primary">{doctor.name.charAt(0)}</span>
+            )}
           </div>
           <DialogTitle className="text-[20px] font-black text-slate-900">Dr. {doctor.name}</DialogTitle>
           <DialogDescription className="text-[13px] font-bold text-primary mt-0.5">{doctor.specialization}</DialogDescription>

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getSpecialtyIcon } from '@/constants/icons';
-import { Grid, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 
-// Top 11 statistically most common specialties
+// Top 10 most common specialties
 const TOP_SPECIALTIES = [
   'General Medicine',
   'Dentistry',
@@ -12,31 +12,29 @@ const TOP_SPECIALTIES = [
   'Pediatrics',
   'Orthopedics',
   'Gynecology',
-  'Neurology',
-  'Psychiatry',
   'ENT',
+  'Ophthalmology',
+  'Psychiatry',
 ];
 
-// View All Card Component
-const ViewAllCard = React.memo(() => {
+// View All Link Component - Text on top, arrow below
+const ViewAllLink = React.memo(() => {
   const navigate = useNavigate();
 
   return (
     <button
       onClick={() => navigate('/search')}
-      className="group flex flex-col items-center justify-center p-4 rounded-2xl bg-primary/10 dark:bg-primary/20 border border-primary/30 dark:border-primary/40 shadow-sm hover:shadow-md hover:bg-primary/20 dark:hover:bg-primary/30 transition-all duration-100 ease-out w-[calc((100vw-5rem)/3.5)] lg:w-[calc((100vw-10rem)/8.5)] h-[130px] flex-shrink-0 snap-center focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+      className="group flex flex-col items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-primary dark:hover:border-primary shadow-sm hover:shadow-md transition-all duration-200 ease-out w-full min-w-[120px] h-[130px] focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none flex-shrink-0"
     >
-      <div className="w-14 h-14 rounded-full bg-primary/20 dark:bg-primary/30 flex items-center justify-center mb-3 group-hover:bg-primary/30 transition-colors duration-100 ease-out">
-        <Grid className="w-7 h-7 text-primary transition-transform duration-100 ease-out will-change-transform group-hover:scale-110" />
-      </div>
-      <span className="text-[13px] font-bold text-primary text-center leading-tight">
-        View All<br />Specialties
+      <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-primary transition-colors duration-200">
+        View All
       </span>
+      <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-primary group-hover:translate-x-1 transition-all duration-200" />
     </button>
   );
 });
 
-ViewAllCard.displayName = 'ViewAllCard';
+ViewAllLink.displayName = 'ViewAllLink';
 
 // Specialty color mapping for distinctive visual identity
 const SPECIALTY_COLORS: Record<string, { bg: string; icon: string; hover: string }> = {
@@ -50,6 +48,7 @@ const SPECIALTY_COLORS: Record<string, { bg: string; icon: string; hover: string
   'Neurology': { bg: 'bg-gradient-to-br from-indigo-100 to-indigo-50 dark:from-indigo-900/30 dark:to-indigo-800/20', icon: 'text-indigo-600 dark:text-indigo-400', hover: 'group-hover:from-indigo-200 group-hover:to-indigo-100 dark:group-hover:from-indigo-800/40 dark:group-hover:to-indigo-700/30' },
   'Psychiatry': { bg: 'bg-gradient-to-br from-violet-100 to-violet-50 dark:from-violet-900/30 dark:to-violet-800/20', icon: 'text-violet-600 dark:text-violet-400', hover: 'group-hover:from-violet-200 group-hover:to-violet-100 dark:group-hover:from-violet-800/40 dark:group-hover:to-violet-700/30' },
   'ENT': { bg: 'bg-gradient-to-br from-teal-100 to-teal-50 dark:from-teal-900/30 dark:to-teal-800/20', icon: 'text-teal-600 dark:text-teal-400', hover: 'group-hover:from-teal-200 group-hover:to-teal-100 dark:group-hover:from-teal-800/40 dark:group-hover:to-teal-700/30' },
+  'Ophthalmology': { bg: 'bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-800/20', icon: 'text-amber-600 dark:text-amber-400', hover: 'group-hover:from-amber-200 group-hover:to-amber-100 dark:group-hover:from-amber-800/40 dark:group-hover:to-amber-700/30' },
 };
 
 const getSpecialtyColors = (specialty: string) => {
@@ -81,7 +80,7 @@ const SpecialtyCard = React.memo(({ specialty }: { specialty: string }) => {
       }}
       tabIndex={0}
       aria-label={`Browse ${specialty} clinics`}
-      className="group flex flex-col items-center justify-center p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg dark:shadow-none hover:border-slate-200 dark:hover:border-slate-600 transition-all duration-200 ease-out w-[calc((100vw-5rem)/3.5)] lg:w-[calc((100vw-10rem)/8.5)] h-[130px] flex-shrink-0 snap-center focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none hover:-translate-y-1"
+      className="group flex flex-col items-center justify-center p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg dark:shadow-none hover:border-slate-200 dark:hover:border-slate-600 transition-all duration-200 ease-out w-full md:w-[180px] lg:w-[200px] h-[130px] snap-center focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none hover:-translate-y-1 flex-shrink-0 min-w-[140px]"
     >
       <div className={`w-14 h-14 rounded-full ${colors.bg} ${colors.hover} flex items-center justify-center mb-3 transition-all duration-200 ease-out shadow-sm`}>
         <Icon className={`w-7 h-7 ${colors.icon} transition-transform duration-200 ease-out will-change-transform group-hover:scale-110`} strokeWidth={2.5} />
@@ -97,7 +96,7 @@ SpecialtyCard.displayName = 'SpecialtyCard';
 
 // Skeleton loader for CLS mitigation
 const SpecialtySkeleton = () => (
-  <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-50 dark:border-slate-700/50 w-[calc((100vw-5rem)/3.5)] lg:w-[calc((100vw-10rem)/8.5)] h-[130px] flex-shrink-0 animate-pulse">
+  <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-50 dark:border-slate-700/50 w-full md:w-[180px] lg:w-[200px] h-[130px] animate-pulse flex-shrink-0 min-w-[140px]">
     <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-700 mb-3" />
     <div className="h-3 w-16 bg-slate-100 dark:bg-slate-700 rounded-full" />
   </div>
@@ -162,42 +161,63 @@ export function BrowseBySpecialty() {
         </div>
 
         <div className="relative">
-          {/* Left Arrow */}
-          {showLeftArrow && (
-            <button
-              onClick={() => scroll('left')}
-              className="absolute left-0 top-[45%] -translate-y-1/2 z-10 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full p-1.5 md:p-2 shadow-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
-              aria-label="Scroll left"
-            >
-              <ChevronLeft className="w-3 h-3 md:w-3.5 md:h-3.5 lg:w-4 lg:h-4 text-slate-700 dark:text-slate-300" />
-            </button>
-          )}
+          {/* Desktop: Horizontal scroll with arrows - Show ~6.5 cards */}
+          <div className="hidden md:block">
+            {/* Left Arrow */}
+            {showLeftArrow && (
+              <button
+                onClick={() => scroll('left')}
+                className="absolute left-0 top-[45%] -translate-y-1/2 z-10 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full p-1.5 md:p-2 shadow-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                aria-label="Scroll left"
+              >
+                <ChevronLeft className="w-3 h-3 md:w-3.5 md:h-3.5 lg:w-4 lg:h-4 text-slate-700 dark:text-slate-300" />
+              </button>
+            )}
 
-          {/* Right Arrow */}
-          {showRightArrow && (
-            <button
-              onClick={() => scroll('right')}
-              className="absolute right-0 top-[45%] -translate-y-1/2 z-10 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full p-1.5 md:p-2 shadow-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
-              aria-label="Scroll right"
-            >
-              <ChevronRight className="w-3 h-3 md:w-3.5 md:h-3.5 lg:w-4 lg:h-4 text-slate-700 dark:text-slate-300" />
-            </button>
-          )}
+            {/* Right Arrow */}
+            {showRightArrow && (
+              <button
+                onClick={() => scroll('right')}
+                className="absolute right-0 top-[45%] -translate-y-1/2 z-10 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full p-1.5 md:p-2 shadow-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                aria-label="Scroll right"
+              >
+                <ChevronRight className="w-3 h-3 md:w-3.5 md:h-3.5 lg:w-4 lg:h-4 text-slate-700 dark:text-slate-300" />
+              </button>
+            )}
 
-          <div 
-            ref={scrollContainerRef}
-            className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 scroll-smooth touch-pan-x custom-scrollbar"
-            role="list"
-          >
-            {isLoading
-              ? Array.from({ length: 12 }).map((_, i) => <SpecialtySkeleton key={i} />)
-              : TOP_SPECIALTIES.map((spec) => (
-                  <div role="listitem" key={spec} className="flex-shrink-0 lg:flex-shrink">
-                    <SpecialtyCard specialty={spec} />
-                  </div>
-                ))}
-            <div role="listitem" className="flex-shrink-0 lg:flex-shrink">
-              <ViewAllCard />
+            <div 
+              ref={scrollContainerRef}
+              className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 scroll-smooth touch-pan-x custom-scrollbar px-1"
+              role="list"
+            >
+              {isLoading
+                ? Array.from({ length: 12 }).map((_, i) => <SpecialtySkeleton key={i} />)
+                : TOP_SPECIALTIES.map((spec) => (
+                    <div role="listitem" key={spec}>
+                      <SpecialtyCard specialty={spec} />
+                    </div>
+                  ))}
+              <div role="listitem">
+                <ViewAllLink />
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile: 3 rows x 2 cols grid with vertical scroll - 9 specialties + ViewAll */}
+          <div className="md:hidden">
+            <div className="grid grid-cols-2 gap-4 max-h-[420px] overflow-y-auto pb-4 custom-scrollbar">
+              {isLoading
+                ? Array.from({ length: 10 }).map((_, i) => <SpecialtySkeleton key={i} />)
+                : TOP_SPECIALTIES.slice(0, 9).map((spec) => (
+                    <div role="listitem" key={spec}>
+                      <SpecialtyCard specialty={spec} />
+                    </div>
+                  ))}
+              {!isLoading && (
+                <div role="listitem">
+                  <ViewAllLink />
+                </div>
+              )}
             </div>
           </div>
         </div>
