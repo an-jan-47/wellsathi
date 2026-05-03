@@ -113,8 +113,10 @@ export function ClinicSlots({ clinicId }: { clinicId: string }) {
       if (existing?.slot_duration) fallbackDuration = existing.slot_duration;
       newFormState[day.value] = {
         is_working_day: existing?.is_working_day ?? false,
-        start_time: existing?.start_time ? existing.start_time.slice(0, 5) : '09:00',
-        end_time: existing?.end_time ? existing.end_time.slice(0, 5) : '17:00',
+        shifts: existing?.shifts?.length ? existing.shifts : [{
+          start_time: existing?.start_time ? existing.start_time.slice(0, 5) : '09:00',
+          end_time: existing?.end_time ? existing.end_time.slice(0, 5) : '17:00'
+        }],
         slot_duration: existing?.slot_duration ?? 15,
       };
     });
@@ -133,6 +135,29 @@ export function ClinicSlots({ clinicId }: { clinicId: string }) {
       ...prev,
       [day]: { ...prev[day], [field]: value }
     }));
+  };
+
+  const updateShift = (day: number, index: number, field: 'start_time' | 'end_time', value: string) => {
+    setFormState(prev => {
+      const shifts = [...(prev[day].shifts || [])];
+      shifts[index] = { ...shifts[index], [field]: value };
+      return { ...prev, [day]: { ...prev[day], shifts } };
+    });
+  };
+
+  const addShift = (day: number) => {
+    setFormState(prev => {
+      const shifts = [...(prev[day].shifts || []), { start_time: '17:00', end_time: '20:00' }];
+      return { ...prev, [day]: { ...prev[day], shifts } };
+    });
+  };
+
+  const removeShift = (day: number, index: number) => {
+    setFormState(prev => {
+      const shifts = [...(prev[day].shifts || [])];
+      shifts.splice(index, 1);
+      return { ...prev, [day]: { ...prev[day], shifts } };
+    });
   };
 
   const updateGlobalDuration = (duration: number) => {
@@ -157,8 +182,7 @@ export function ClinicSlots({ clinicId }: { clinicId: string }) {
         clinic_id: clinicId,
         day_of_week: day.value,
         is_working_day: d.is_working_day,
-        start_time: d.start_time,
-        end_time: d.end_time,
+        shifts: d.shifts,
         slot_duration: d.slot_duration || globalSlotDuration,
       };
     });
@@ -251,8 +275,7 @@ export function ClinicSlots({ clinicId }: { clinicId: string }) {
       Object.keys(newState).forEach(d => {
         const dayNum = Number(d);
         if (dayNum !== sourceDayValue && newState[dayNum].is_working_day) {
-          newState[dayNum].start_time = sourceState.start_time;
-          newState[dayNum].end_time = sourceState.end_time;
+          newState[dayNum].shifts = JSON.parse(JSON.stringify(sourceState.shifts || []));
         }
       });
       return newState;
@@ -365,8 +388,7 @@ export function ClinicSlots({ clinicId }: { clinicId: string }) {
               <div className="hidden md:grid grid-cols-12 gap-4 px-8 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em] border-b border-slate-50 dark:border-slate-700">
                 <div className="col-span-3">Day of Week</div>
                 <div className="col-span-2">Status</div>
-                <div className="col-span-3">Shift Start</div>
-                <div className="col-span-3">Shift End</div>
+                <div className="col-span-6">Working Hours</div>
                 <div className="col-span-1 text-center">Actions</div>
               </div>
 
@@ -375,10 +397,11 @@ export function ClinicSlots({ clinicId }: { clinicId: string }) {
                 {DAYS_OF_WEEK.map(day => {
                   const state = formState[day.value] || {};
                   const isWorking = state.is_working_day;
+                  const shifts = state.shifts || [];
                   return (
-                    <div key={day.value} className={`grid grid-cols-1 md:grid-cols-12 gap-5 px-6 md:px-8 py-5 items-center transition-colors hover:bg-slate-50/50 dark:hover:bg-slate-700/30 ${!isWorking ? 'opacity-60 grayscale-[30%]' : ''}`}>
-                      <div className="md:col-span-3 font-bold text-[15px] text-slate-800 dark:text-white flex justify-between items-center">
-                        <span className={!isWorking ? 'text-slate-500 dark:text-slate-500' : ''}>{day.label}</span>
+                    <div key={day.value} className={`grid grid-cols-1 md:grid-cols-12 gap-5 px-6 md:px-8 py-5 items-start transition-colors hover:bg-slate-50/50 dark:hover:bg-slate-700/30 ${!isWorking ? 'bg-slate-50/30 dark:bg-slate-800/50' : ''}`}>
+                      <div className="md:col-span-3 font-bold text-[15px] text-slate-800 dark:text-white flex justify-between items-center pt-1.5">
+                        <span className={!isWorking ? 'text-slate-400 dark:text-slate-500' : ''}>{day.label}</span>
                         <div className="md:hidden flex items-center gap-3">
                           <span className={`text-[12px] font-bold ${isWorking ? 'text-slate-900 dark:text-white' : 'text-slate-400'}`}>{isWorking ? 'Working' : 'Off'}</span>
                           <button onClick={() => updateDay(day.value, 'is_working_day', !isWorking)} className={`w-[42px] h-6 rounded-full flex items-center p-1 transition-colors duration-300 ${isWorking ? 'bg-[#006b5f]' : 'bg-slate-200 dark:bg-slate-600'}`}>
@@ -386,30 +409,49 @@ export function ClinicSlots({ clinicId }: { clinicId: string }) {
                           </button>
                         </div>
                       </div>
-                      <div className="hidden md:flex md:col-span-2 items-center gap-3">
+                      <div className="hidden md:flex md:col-span-2 items-center gap-3 pt-1.5">
                         <button onClick={() => updateDay(day.value, 'is_working_day', !isWorking)} className={`w-[42px] h-6 rounded-full flex items-center p-1 transition-colors duration-300 ${isWorking ? 'bg-[#006b5f]' : 'bg-slate-200 dark:bg-slate-600'}`}>
                           <div className={`w-4 h-4 rounded-full bg-white transition-transform duration-300 shadow-sm ${isWorking ? 'translate-x-[18px]' : 'translate-x-0'}`} />
                         </button>
                         <span className={`text-[13px] font-bold ${isWorking ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'}`}>{isWorking ? 'Working' : 'Off'}</span>
                       </div>
-                      <div className="md:col-span-3">
-                        <div className="md:hidden text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Shift Start</div>
-                        <div className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-colors ${!isWorking ? 'bg-slate-50 dark:bg-slate-700 border-slate-100 dark:border-slate-600 pointer-events-none' : 'bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 focus-within:border-[#006b5f] shadow-sm'}`}>
-                          <Clock className={`w-4 h-4 ${!isWorking ? 'text-slate-300 dark:text-slate-600' : 'text-slate-900 dark:text-white'}`} strokeWidth={2.5} />
-                          <input type="time" value={state.start_time || ''} onChange={(e) => updateDay(day.value, 'start_time', e.target.value)} disabled={!isWorking} className="bg-transparent border-none outline-none text-[14px] font-extrabold text-slate-800 dark:text-white w-full disabled:text-slate-400 dark:disabled:text-slate-600" />
-                        </div>
+                      <div className={`md:col-span-6 space-y-3 ${!isWorking ? 'opacity-40 pointer-events-none grayscale' : ''}`}>
+                        {shifts.map((shift, idx) => (
+                          <div key={idx} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                            <div className="flex-1">
+                              <div className="md:hidden text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">{idx === 0 ? 'Shift Start' : 'Break End'}</div>
+                              <div className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-colors ${!isWorking ? 'bg-slate-50 dark:bg-slate-700 border-slate-100 dark:border-slate-600' : 'bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 focus-within:border-[#006b5f] shadow-sm'}`}>
+                                <Clock className={`w-4 h-4 ${!isWorking ? 'text-slate-300 dark:text-slate-600' : 'text-slate-900 dark:text-white'}`} strokeWidth={2.5} />
+                                <input type="time" value={shift.start_time || ''} onChange={(e) => updateShift(day.value, idx, 'start_time', e.target.value)} disabled={!isWorking} className="bg-transparent border-none outline-none text-[14px] font-extrabold text-slate-800 dark:text-white w-full disabled:text-slate-400 dark:disabled:text-slate-600" />
+                              </div>
+                            </div>
+                            <span className="hidden sm:block text-slate-300 dark:text-slate-600 font-bold self-end pb-3">-</span>
+                            <div className="flex-1 flex items-end gap-2">
+                              <div className="flex-1">
+                                <div className="md:hidden text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">{idx === 0 ? 'Shift End' : 'Break Start'}</div>
+                                <div className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-colors ${!isWorking ? 'bg-slate-50 dark:bg-slate-700 border-slate-100 dark:border-slate-600' : 'bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 focus-within:border-[#006b5f] shadow-sm'}`}>
+                                  <Clock className={`w-4 h-4 ${!isWorking ? 'text-slate-300 dark:text-slate-600' : 'text-slate-900 dark:text-white'}`} strokeWidth={2.5} />
+                                  <input type="time" value={shift.end_time || ''} onChange={(e) => updateShift(day.value, idx, 'end_time', e.target.value)} disabled={!isWorking} className="bg-transparent border-none outline-none text-[14px] font-extrabold text-slate-800 dark:text-white w-full disabled:text-slate-400 dark:disabled:text-slate-600" />
+                                </div>
+                              </div>
+                              {idx > 0 && (
+                                <button onClick={() => removeShift(day.value, idx)} disabled={!isWorking} className="p-3 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-colors shrink-0 mb-0.5">
+                                  <Trash className="w-4 h-4" strokeWidth={2.5} />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                        {isWorking && (
+                          <button onClick={() => addShift(day.value)} className="text-[12px] text-[#006b5f] dark:text-[#2dd4bf] hover:text-[#005048] font-bold flex items-center gap-1.5 py-1 transition-colors">
+                            <Plus className="w-3.5 h-3.5" strokeWidth={3} /> Add Break / Shift
+                          </button>
+                        )}
                       </div>
-                      <div className="md:col-span-3">
-                        <div className="md:hidden text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Shift End</div>
-                        <div className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-colors ${!isWorking ? 'bg-slate-50 dark:bg-slate-700 border-slate-100 dark:border-slate-600 pointer-events-none' : 'bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 focus-within:border-[#006b5f] shadow-sm'}`}>
-                          <Clock className={`w-4 h-4 ${!isWorking ? 'text-slate-300 dark:text-slate-600' : 'text-slate-900 dark:text-white'}`} strokeWidth={2.5} />
-                          <input type="time" value={state.end_time || ''} onChange={(e) => updateDay(day.value, 'end_time', e.target.value)} disabled={!isWorking} className="bg-transparent border-none outline-none text-[14px] font-extrabold text-slate-800 dark:text-white w-full disabled:text-slate-400 dark:disabled:text-slate-600" />
-                        </div>
-                      </div>
-                      <div className="hidden md:flex md:col-span-1 justify-center relative">
+                      <div className="hidden md:flex md:col-span-1 justify-center relative pt-1.5">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 transition-colors" disabled={!isWorking}><MoreHorizontal className="w-5 h-5" /></button>
+                            <button className={`p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 transition-colors ${!isWorking ? 'opacity-40 pointer-events-none' : ''}`} disabled={!isWorking}><MoreHorizontal className="w-5 h-5" /></button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-48 rounded-xl font-medium dark:bg-slate-800 dark:border-slate-700">
                             <DropdownMenuItem className="cursor-pointer font-semibold py-2.5 dark:text-slate-200" onClick={() => copyToAllWorkingDays(day.value)}>Copy to All Working</DropdownMenuItem>

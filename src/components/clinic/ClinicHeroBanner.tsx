@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Star, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { MapPin, Star, ArrowLeft, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Clinic } from '@/types';
 
 interface Props {
@@ -12,17 +13,67 @@ interface Props {
  */
 export function ClinicHeroBanner({ clinic }: Props) {
   const hasRating = (clinic.rating ?? 0) > 0;
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const images = clinic.images || [];
+
+  const nextSlide = () => {
+    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  };
+
+  const prevSlide = () => {
+    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
 
   return (
-    <div className="relative w-full h-full rounded-[20px] overflow-hidden bg-slate-200">
-      {/* Image */}
-      {clinic.images && clinic.images.length > 0 ? (
-        <img
-          src={clinic.images[0]}
-          alt={clinic.name}
-          loading="eager"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+    <div className="relative w-full h-full rounded-[20px] overflow-hidden bg-slate-200 group">
+      {/* Image Carousel */}
+      {images.length > 0 ? (
+        <div className="absolute inset-0 w-full h-full overflow-hidden">
+          <div 
+            className="flex w-full h-full transition-transform duration-500 ease-out"
+            style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+          >
+            {images.map((img, i) => (
+              <img
+                key={i}
+                src={img}
+                alt={`${clinic.name} - photo ${i + 1}`}
+                loading={i === 0 ? "eager" : "lazy"}
+                className="w-full h-full flex-shrink-0 object-cover"
+              />
+            ))}
+          </div>
+
+          {/* Carousel Controls */}
+          {images.length > 1 && (
+            <>
+              <button 
+                onClick={prevSlide} 
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center bg-black/20 hover:bg-black/50 text-white rounded-full backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all shadow-lg"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              <button 
+                onClick={nextSlide} 
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center bg-black/20 hover:bg-black/50 text-white rounded-full backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all shadow-lg"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+              
+              {/* Pagination Dots */}
+              <div className="absolute bottom-[88px] md:bottom-24 right-5 z-20 flex gap-1.5">
+                {images.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentIndex(i)}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${i === currentIndex ? 'w-5 bg-white' : 'w-1.5 bg-white/50 hover:bg-white/80'}`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       ) : (
         <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-primary/30 to-slate-300 flex items-center justify-center">
           <span className="text-8xl font-black text-white/25">{clinic.name.charAt(0)}</span>

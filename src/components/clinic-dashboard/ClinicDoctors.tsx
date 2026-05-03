@@ -89,24 +89,13 @@ export function ClinicDoctors({ clinicId }: Props) {
     formData.append('image', processedBlob, 'profile.webp');
     formData.append('doctor_id', doctorId);
 
-    const { data: authData } = await supabase.auth.getSession();
-    const token = authData.session?.access_token;
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://shwunuijjtjctwfeaxmr.supabase.co';
-
-    const response = await fetch(`${supabaseUrl}/functions/v1/process-doctor-image`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
+    const { data, error } = await supabase.functions.invoke('process-doctor-image', {
       body: formData,
     });
 
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({ error: 'Upload failed' }));
-      throw new Error(err.error || 'Failed to process image');
+    if (error) {
+      throw new Error(error.message || 'Failed to process image');
     }
-
-    const data = await response.json();
 
     return data.url;
   };

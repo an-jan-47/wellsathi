@@ -58,8 +58,9 @@ export interface DoctorSchedule {
   doctor_id: string;
   clinic_id: string;
   day_of_week: number;
-  start_time: string;
-  end_time: string;
+  start_time: string | null;
+  end_time: string | null;
+  shifts?: { start_time: string; end_time: string }[] | null;
   break_start: string | null;
   break_end: string | null;
   slot_duration: number;
