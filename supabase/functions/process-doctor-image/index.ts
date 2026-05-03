@@ -9,9 +9,9 @@ const allowedOrigins = [
 
 serve(async (req: Request) => {
   // Handle CORS
-  const origin = req.headers.get("Origin") || "";
+  const origin = req.headers.get("Origin") || "*";
   const corsHeaders = {
-    "Access-Control-Allow-Origin": allowedOrigins.includes(origin) ? origin : allowedOrigins[0],
+    "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   };
