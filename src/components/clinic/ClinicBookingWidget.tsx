@@ -163,7 +163,7 @@ export function ClinicBookingWidget({
                   : 'bg-slate-100 text-slate-400 cursor-not-allowed'
               }`}
             >
-              {selectedSlot ? 'Confirm Appointment' : 'Select a Time Slot'}
+              {selectedSlot ? 'Continue' : 'Select a Time Slot'}
             </button>
           </div>
 
