@@ -17,11 +17,14 @@ import { toast } from 'sonner';
 import { format, parseISO, addDays, isToday as isTodayFn } from 'date-fns';
 import {
   ArrowLeft, ArrowRight, Calendar, Clock, User, Phone, Mail,
-  Loader2, IndianRupee, Stethoscope, Building2, Check, Edit2, CheckCircle2,
+  Loader2, IndianRupee, Stethoscope, Building2, Check, Edit2, CheckCircle2, Download, CheckCircle,
 } from 'lucide-react';
 import { z } from 'zod';
 import { sortAlphaBy } from '@/lib/sortUtils';
 import type { Doctor } from '@/types';
+import { generateGoogleCalendarUrl, downloadICSFile, calculateDuration, formatDuration } from '@/lib/calendarUtils';
+import { useFormValidation } from '@/hooks/useFormValidation';
+import { useSessionStorage } from '@/hooks/useSessionStorage';
 
 /* ───────────── validation schemas ───────────── */
 const patientSchema = z.object({
@@ -42,7 +45,7 @@ interface Service {
 
 type Step = 1 | 2;
 
-const STEP_LABELS = ['Select Appointment', 'Patient Details'] as const;
+const STEP_LABELS = ['Patient Details', 'Confirmation'] as const;
 
 /* ═══════════════════════════════════════════════ */
 export default function Book() {
@@ -74,6 +77,18 @@ export default function Book() {
   const { data: slots = [], refetch: refetchSlots } = useAllSlots(selectedDoctorId, selectedDate);
   const bookMutation = useBookAppointment();
 
+  /* Skip Step 1 if coming from Clinic Profile with selections */
+  useEffect(() => {
+    const hasDoctor = searchParams.get('doctor');
+    const hasDate = searchParams.get('date');
+    const hasTime = searchParams.get('time');
+    
+    if (hasDoctor && hasDate && hasTime) {
+      // All required params present, skip to patient details
+      setStep(1); // Step 1 is now Patient Details
+    }
+  }, [searchParams]);
+
   /* default to first doctor if none selected and doctors are loaded */
   useEffect(() => {
     if (doctors.length > 0 && !selectedDoctorId) {
@@ -83,7 +98,7 @@ export default function Book() {
   }, [doctors.length]);
 
   /* ── step 2 form ── */
-  const [formData, setFormData] = useState({
+  const [formData, setFormData, clearFormData] = useSessionStorage(`booking-form-${clinicId}`, {
     patientName: '',
     patientPhone: '',
     patientEmail: '',
@@ -92,6 +107,8 @@ export default function Book() {
     notes: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [fieldValidity, setFieldValidity] = useState<Record<string, boolean>>({});
+  const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
 
   /* prefill from profile */
   useEffect(() => {
@@ -109,6 +126,11 @@ export default function Book() {
   const selectedServices = sortedServices.filter(s => selectedServiceIds.includes(s.id));
   const baseFee = selectedDoctor && (selectedDoctor.fee ?? 0) > 0 ? selectedDoctor.fee! : (clinic?.fees ?? 0);
   const totalFee = baseFee + selectedServices.reduce((sum, s) => sum + s.fee, 0);
+  
+  // Calculate appointment duration
+  const selectedSlot = slots.find(s => s.start_time === selectedTime);
+  const appointmentDuration = selectedSlot ? calculateDuration(selectedSlot.start_time, selectedSlot.end_time) : 30;
+  const durationDisplay = formatDuration(appointmentDuration);
 
   const dateOptions = Array.from({ length: 7 }, (_, i) => {
     const date = addDays(new Date(), i);
@@ -133,8 +155,24 @@ export default function Book() {
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: '' });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    setTouchedFields({ ...touchedFields, [name]: true });
+    
+    // Real-time validation
+    try {
+      const fieldSchema = (patientSchema as any).shape[name];
+      if (fieldSchema) {
+        fieldSchema.parse(value);
+        setErrors({ ...errors, [name]: '' });
+        setFieldValidity({ ...fieldValidity, [name]: true });
+      }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        setErrors({ ...errors, [name]: error.errors[0]?.message || 'Invalid value' });
+        setFieldValidity({ ...fieldValidity, [name]: false });
+      }
+    }
   };
 
   const canProceedStep1 = selectedTime && selectedDoctorId;
@@ -183,6 +221,7 @@ export default function Book() {
       onSuccess: (appointmentId) => {
         setBookingRefId(appointmentId?.slice(0, 8).toUpperCase() || 'CONFIRMED');
         setIsSuccess(true);
+        clearFormData(); // Clear session storage after successful booking
         window.scrollTo({ top: 0, behavior: 'smooth' });
       },
       onError: (error) => {
@@ -213,6 +252,32 @@ export default function Book() {
 
   /* ── success screen ── */
   if (isSuccess) {
+    // Prepare calendar event data
+    const appointmentDate = parseISO(selectedDate);
+    const [hours, minutes] = selectedTime.split(':').map(Number);
+    const startTime = new Date(appointmentDate);
+    startTime.setHours(hours, minutes, 0);
+    
+    const endTime = new Date(startTime);
+    endTime.setMinutes(endTime.getMinutes() + appointmentDuration);
+
+    const calendarEvent = {
+      title: `Appointment at ${clinic.name}`,
+      description: `Doctor: ${selectedDoctor?.name || 'N/A'}\\nReference ID: ${bookingRefId}\\nTotal Fee: ₹${totalFee}\\n\\nNotes: ${formData.notes || 'None'}`,
+      location: `${clinic.address}, ${clinic.city}`,
+      startTime,
+      endTime,
+    };
+
+    const handleAddToGoogleCalendar = () => {
+      const url = generateGoogleCalendarUrl(calendarEvent);
+      window.open(url, '_blank');
+    };
+
+    const handleDownloadICS = () => {
+      downloadICSFile(calendarEvent, `appointment-${bookingRefId}.ics`);
+    };
+
     return (
       <Layout>
         <div className="container py-20 max-w-lg mx-auto text-center animate-scale-in">
@@ -230,8 +295,20 @@ export default function Book() {
             {selectedDoctor && <div className="flex justify-between"><span className="text-muted-foreground">Doctor</span><span className="font-medium">{selectedDoctor.name}</span></div>}
             <div className="flex justify-between"><span className="text-muted-foreground">Date</span><span className="font-medium">{format(parseISO(selectedDate), 'MMM d, yyyy')}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Time</span><span className="font-medium">{selectedTime.slice(0, 5)}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Duration</span><span className="font-medium">{durationDisplay}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Total</span><span className="font-bold text-primary">₹{totalFee}</span></div>
           </div>
+          
+          {/* Calendar Integration Button */}
+          <Button 
+            onClick={handleAddToGoogleCalendar}
+            variant="outline"
+            className="w-full mb-6"
+          >
+            <Calendar className="h-4 w-4 mr-2" />
+            Add to Google Calendar
+          </Button>
+
           <div className="flex gap-3">
             <Button variant="outline" className="flex-1" onClick={() => navigate('/dashboard/user')}>My Appointments</Button>
             <Button className="flex-1" onClick={() => navigate('/', { replace: true })}>Home</Button>
@@ -261,179 +338,12 @@ export default function Book() {
         </div>
       </div>
 
-      {/* Step Indicator */}
-      <div className="container py-6 md:py-8 px-4">
-        <div className="flex items-center gap-1 md:gap-2 max-w-sm mx-auto">
-          {STEP_LABELS.map((label, i) => {
-            const stepNum = (i + 1) as Step;
-            const isActive = step === stepNum;
-            const isDone = step > stepNum;
-            return (
-              <div key={label} className="flex items-center flex-1">
-                <div className="flex flex-col items-center gap-2 flex-1">
-                  <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-sm md:text-base font-bold transition-all flex-shrink-0 ${
-                    isDone ? 'bg-green-500 text-white' : isActive ? 'gradient-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-                  }`}>
-                    {isDone ? <Check className="h-5 w-5 md:h-6 md:w-6" /> : stepNum}
-                  </div>
-                  <span className={`text-[11px] md:text-xs font-semibold text-center ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>{label}</span>
-                </div>
-                {i < 1 && <div className={`h-0.5 w-full mx-2 md:mx-3 rounded mb-6 ${isDone ? 'bg-green-500' : 'bg-muted'}`} />}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
       <div className="container pb-8 md:pb-12 px-4">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 xl:gap-10">
           {/* ── Main content ── */}
           <div className="lg:col-span-7">
-            {/* ═══ STEP 1: SELECT ═══ */}
+            {/* ═══ STEP 1: PATIENT INFO + SERVICES ═══ */}
             {step === 1 && (
-              <div className="space-y-6 animate-fade-in">
-                {/* Doctor Selection */}
-                {sortedDoctors.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg">Select Doctor</CardTitle>
-                      <CardDescription>Choose a doctor for your appointment (optional)</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {sortedDoctors.map((doctor) => (
-                          <button
-                            key={doctor.id}
-                            type="button"
-                            onClick={() => {
-                              setSelectedDoctorId(prev => prev === doctor.id ? '' : doctor.id);
-                              setSelectedTime('');
-                            }}
-                            className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${
-                              selectedDoctorId === doctor.id
-                                ? 'border-primary bg-primary/5'
-                                : 'border-border hover:border-primary/30'
-                            }`}
-                          >
-                            <div className="h-11 w-11 rounded-full gradient-primary flex items-center justify-center flex-shrink-0">
-                              <span className="text-sm font-bold text-primary-foreground">{doctor.name.charAt(0)}</span>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-foreground text-sm truncate">{doctor.name}</p>
-                              <p className="text-xs text-muted-foreground">{doctor.specialization}</p>
-                              {(doctor.experience_years ?? 0) > 0 && (
-                                <p className="text-xs text-muted-foreground">{doctor.experience_years}+ yrs exp.</p>
-                              )}
-                              {(doctor.fee ?? 0) > 0 && (
-                                <p className="text-xs font-semibold text-primary mt-0.5">₹{doctor.fee}</p>
-                              )}
-                            </div>
-                            {selectedDoctorId === doctor.id && (
-                              <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                                <Check className="h-3 w-3 text-primary-foreground" />
-                              </div>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Multi-Service Selection */}
-                {sortedServices.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg">Extra Services <span className="text-sm font-normal text-muted-foreground">(optional)</span></CardTitle>
-                      <CardDescription>Add extra services to your appointment</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        {sortedServices.map((service) => (
-                          <label
-                            key={service.id}
-                            className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border ${
-                              selectedServiceIds.includes(service.id) ? 'border-primary bg-primary/5' : 'border-transparent hover:bg-muted/50'
-                            }`}
-                          >
-                            <Checkbox
-                              checked={selectedServiceIds.includes(service.id)}
-                              onCheckedChange={() => toggleService(service.id)}
-                            />
-                            <span className="flex-1 font-medium text-sm">{service.service_name}</span>
-                            <span className="font-semibold text-primary text-sm">₹{service.fee}</span>
-                          </label>
-                        ))}
-                      </div>
-                      {selectedServices.length > 0 && (
-                        <div className="flex justify-between items-center mt-4 pt-3 border-t border-border">
-                          <span className="text-sm text-muted-foreground">{selectedServices.length} service(s) selected</span>
-                          <span className="font-bold text-primary">Total: ₹{selectedServices.reduce((s, svc) => s + svc.fee, 0)}</span>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Date Selection */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Select Date & Time</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium text-foreground mb-2 block">Date</label>
-                      <div className="flex flex-wrap gap-2">
-                        {dateOptions.map((option) => (
-                          <button key={option.value} type="button"
-                            onClick={() => { setSelectedDate(option.value); setSelectedTime(''); }}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                              selectedDate === option.value ? 'gradient-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:text-foreground'
-                            }`}>
-                            {option.isToday ? 'Today' : option.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-foreground mb-2 block">Time Slot</label>
-                      {filteredSlots.length > 0 ? (
-                        <div className="max-h-[280px] md:max-h-[320px] overflow-y-auto custom-scrollbar pr-2">
-                          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
-                            {filteredSlots.map((slot) => (
-                              <button key={slot.id} type="button"
-                                disabled={!slot.is_available}
-                                onClick={() => { if (slot.is_available) { setSelectedTime(slot.start_time); } }}
-                                className={`px-2 py-2.5 rounded-lg text-xs md:text-sm font-medium transition-all ${
-                                  !slot.is_available
-                                    ? 'bg-muted/50 text-muted-foreground/50 cursor-not-allowed line-through'
-                                    : selectedTime === slot.start_time
-                                      ? 'gradient-primary text-primary-foreground shadow-md'
-                                      : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80'
-                                }`}>
-                                {slot.start_time.slice(0, 5)}
-                                {!slot.is_available && <span className="block text-[9px] md:text-[10px] opacity-60 mt-0.5">Booked</span>}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      ) : (
-                        <p className="text-sm text-muted-foreground py-4 text-center bg-muted/50 rounded-lg">
-                          {!selectedDoctorId ? 'Please select a doctor to view slots' : 'No slots available for this date'}
-                        </p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Button size="lg" className="w-full shadow-lg" disabled={!canProceedStep1} onClick={goToStep2}>
-                  Continue <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </div>
-            )}
-
-            {/* ═══ STEP 2: PATIENT INFO ═══ */}
-            {step === 2 && (
               <div className="space-y-6 animate-fade-in">
                 <Card>
                   <CardHeader>
@@ -443,37 +353,82 @@ export default function Book() {
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="text-sm font-medium text-foreground mb-2 block">Full Name *</label>
+                        <label htmlFor="patientName" className="text-sm font-medium text-foreground mb-2 block">Full Name *</label>
                         <div className="relative">
-                          <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input name="patientName" placeholder="Enter your name" value={formData.patientName} onChange={handleChange} className="pl-11" />
+                          <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                          <Input 
+                            id="patientName"
+                            name="patientName" 
+                            placeholder="Enter your name" 
+                            value={formData.patientName} 
+                            onChange={handleChange} 
+                            className={`pl-11 ${touchedFields.patientName && fieldValidity.patientName ? 'border-green-500' : ''}`}
+                            aria-required="true"
+                            aria-invalid={errors.patientName && touchedFields.patientName ? 'true' : 'false'}
+                            aria-describedby={errors.patientName && touchedFields.patientName ? 'patientName-error' : undefined}
+                          />
+                          {touchedFields.patientName && fieldValidity.patientName && (
+                            <CheckCircle className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" aria-label="Valid input" />
+                          )}
                         </div>
-                        {errors.patientName && <p className="text-sm text-destructive mt-1">{errors.patientName}</p>}
+                        {errors.patientName && touchedFields.patientName && <p id="patientName-error" className="text-sm text-destructive mt-1" role="alert">{errors.patientName}</p>}
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-foreground mb-2 block">Phone Number *</label>
-                        <PhoneInput
-                          value={formData.patientPhone}
-                          onChange={(value) => {
-                            setFormData({ ...formData, patientPhone: value });
-                            setErrors({ ...errors, patientPhone: '' });
-                          }}
-                          error={errors.patientPhone}
-                        />
+                        <label htmlFor="patientPhone" className="text-sm font-medium text-foreground mb-2 block">Phone Number *</label>
+                        <div className="relative">
+                          <PhoneInput
+                            id="patientPhone"
+                            value={formData.patientPhone}
+                            onChange={(value) => {
+                              setFormData({ ...formData, patientPhone: value });
+                              setTouchedFields({ ...touchedFields, patientPhone: true });
+                              // Validate phone
+                              if (validatePhoneNumber(value)) {
+                                setErrors({ ...errors, patientPhone: '' });
+                                setFieldValidity({ ...fieldValidity, patientPhone: true });
+                              } else {
+                                setErrors({ ...errors, patientPhone: 'Enter a valid phone number' });
+                                setFieldValidity({ ...fieldValidity, patientPhone: false });
+                              }
+                            }}
+                            error={errors.patientPhone}
+                            aria-required="true"
+                            aria-invalid={errors.patientPhone ? 'true' : 'false'}
+                            aria-describedby={errors.patientPhone ? 'patientPhone-error' : undefined}
+                          />
+                          {touchedFields.patientPhone && fieldValidity.patientPhone && (
+                            <CheckCircle className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" aria-label="Valid input" />
+                          )}
+                        </div>
+                        {errors.patientPhone && <p id="patientPhone-error" className="text-sm text-destructive mt-1" role="alert">{errors.patientPhone}</p>}
                       </div>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-foreground mb-2 block">Email (Optional)</label>
+                      <label htmlFor="patientEmail" className="text-sm font-medium text-foreground mb-2 block">Email (Optional)</label>
                       <div className="relative">
-                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input name="patientEmail" placeholder="your@email.com" value={formData.patientEmail} onChange={handleChange} className="pl-11" />
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                        <Input 
+                          id="patientEmail"
+                          name="patientEmail" 
+                          type="email"
+                          placeholder="your@email.com" 
+                          value={formData.patientEmail} 
+                          onChange={handleChange} 
+                          className={`pl-11 ${touchedFields.patientEmail && fieldValidity.patientEmail ? 'border-green-500' : ''}`}
+                          aria-invalid={errors.patientEmail && touchedFields.patientEmail ? 'true' : 'false'}
+                          aria-describedby={errors.patientEmail && touchedFields.patientEmail ? 'patientEmail-error' : undefined}
+                        />
+                        {touchedFields.patientEmail && fieldValidity.patientEmail && formData.patientEmail && (
+                          <CheckCircle className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" aria-label="Valid input" />
+                        )}
                       </div>
-                      {errors.patientEmail && <p className="text-sm text-destructive mt-1">{errors.patientEmail}</p>}
+                      {errors.patientEmail && touchedFields.patientEmail && <p id="patientEmail-error" className="text-sm text-destructive mt-1" role="alert">{errors.patientEmail}</p>}
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="text-sm font-medium text-foreground mb-2 block">Age (Optional)</label>
+                        <label htmlFor="age" className="text-sm font-medium text-foreground mb-2 block">Age (Optional)</label>
                         <Input 
+                          id="age"
                           name="age" 
                           type="number" 
                           placeholder="Enter age" 
@@ -486,11 +441,13 @@ export default function Book() {
                               target.value = target.value.slice(0, 3);
                             }
                           }}
+                          aria-invalid={errors.age && touchedFields.age ? 'true' : 'false'}
+                          aria-describedby={errors.age && touchedFields.age ? 'age-error' : undefined}
                         />
-                        {errors.age && <p className="text-sm text-destructive mt-1">{errors.age}</p>}
+                        {errors.age && touchedFields.age && <p id="age-error" className="text-sm text-destructive mt-1" role="alert">{errors.age}</p>}
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-foreground mb-2 block">Gender (Optional)</label>
+                        <label htmlFor="gender" className="text-sm font-medium text-foreground mb-2 block">Gender (Optional)</label>
                         <Select
                           value={formData.gender}
                           onValueChange={(value) => {
@@ -498,7 +455,7 @@ export default function Book() {
                             setErrors({ ...errors, gender: '' });
                           }}
                         >
-                          <SelectTrigger className="w-full">
+                          <SelectTrigger id="gender" className="w-full" aria-label="Select gender">
                             <SelectValue placeholder="Select gender" />
                           </SelectTrigger>
                           <SelectContent>
@@ -511,27 +468,75 @@ export default function Book() {
                       </div>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-foreground mb-2 block">Notes (Optional)</label>
-                      <Textarea name="notes" placeholder="Any specific concerns or symptoms..." value={formData.notes} onChange={handleChange} rows={3} />
+                      <label htmlFor="notes" className="text-sm font-medium text-foreground mb-2 block">Notes (Optional)</label>
+                      <Textarea 
+                        id="notes"
+                        name="notes" 
+                        placeholder="Any specific concerns or symptoms..." 
+                        value={formData.notes} 
+                        onChange={handleChange} 
+                        rows={3}
+                        aria-label="Additional notes or concerns"
+                      />
                     </div>
                   </CardContent>
                 </Card>
 
-                <div className="flex gap-3">
-                  <Button
-                    size="lg"
-                    className="w-full shadow-lg shadow-primary/20"
-                    disabled={bookMutation.isPending}
-                    onClick={submitBooking}
-                  >
-                    {bookMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Check className="h-4 w-4 mr-2" />}
-                    Confirm Booking
-                  </Button>
-                </div>
+                {/* Extra Services Section - Now in Patient Details */}
+                {sortedServices.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Extra Services <span className="text-sm font-normal text-muted-foreground">(optional)</span></CardTitle>
+                      <CardDescription>Add extra services to your appointment</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2" role="group" aria-label="Extra services selection">
+                        {sortedServices.map((service) => (
+                          <label
+                            key={service.id}
+                            className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border ${
+                              selectedServiceIds.includes(service.id) ? 'border-primary bg-primary/5' : 'border-transparent hover:bg-muted/50'
+                            }`}
+                          >
+                            <Checkbox
+                              checked={selectedServiceIds.includes(service.id)}
+                              onCheckedChange={() => toggleService(service.id)}
+                              aria-label={`${service.service_name} for ₹${service.fee}`}
+                            />
+                            <span className="flex-1 font-medium text-sm">{service.service_name}</span>
+                            <span className="font-semibold text-primary text-sm" aria-label={`Price: ${service.fee} rupees`}>₹{service.fee}</span>
+                          </label>
+                        ))}
+                      </div>
+                      {selectedServices.length > 0 && (
+                        <div className="flex justify-between items-center mt-4 pt-3 border-t border-border" role="status" aria-live="polite">
+                          <span className="text-sm text-muted-foreground">{selectedServices.length} service(s) selected</span>
+                          <span className="font-bold text-primary">Total: ₹{selectedServices.reduce((s, svc) => s + svc.fee, 0)}</span>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+
+                <Button
+                  size="lg"
+                  className="w-full shadow-lg shadow-primary/20"
+                  disabled={
+                    bookMutation.isPending || 
+                    !formData.patientName.trim() || 
+                    !formData.patientPhone.trim() ||
+                    formData.patientPhone.replace(/\D/g, '').length < 7
+                  }
+                  onClick={submitBooking}
+                  aria-label={bookMutation.isPending ? 'Booking in progress' : 'Confirm booking'}
+                  aria-busy={bookMutation.isPending}
+                >
+                  {bookMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" aria-hidden="true" /> : <Check className="h-4 w-4 mr-2" aria-hidden="true" />}
+                  Confirm Booking
+                </Button>
               </div>
             )}
           </div>
-
 
           {/* ── Sidebar ── */}
           <div className="lg:col-span-5">
@@ -585,6 +590,21 @@ export default function Book() {
                         </div>
                       </div>
                     </div>
+                    
+                    {/* Duration Display */}
+                    {selectedTime && (
+                      <div className="pt-2.5 md:pt-3 border-t border-slate-200 dark:border-slate-700/50">
+                        <div className="flex items-center gap-2 md:gap-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg p-2.5 md:p-3">
+                          <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 flex-shrink-0">
+                            <Clock className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[11px] md:text-[12px] font-medium text-slate-500 uppercase tracking-wider mb-0.5">Duration</p>
+                            <p className="text-xs md:text-[14px] font-bold text-purple-700 dark:text-purple-300">{durationDisplay}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -595,17 +615,22 @@ export default function Book() {
                   <p className="font-bold text-slate-800 dark:text-white text-sm md:text-[15px]">Fees Breakdown</p>
                   
                   <div className="space-y-2 md:space-y-2.5">
-                    <div className="flex justify-between items-center text-xs md:text-[14px]">
+                    <div className="flex justify-between items-center text-xs md:text-[14px] p-2.5 md:p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
                       <span className="text-slate-600 dark:text-slate-400 font-medium">Consultation Fee</span>
                       <span className="font-bold text-slate-800 dark:text-slate-200">₹{baseFee}</span>
                     </div>
                     
-                    {selectedServices.map(s => (
-                      <div key={s.id} className="flex justify-between items-center text-xs md:text-[14px]">
-                        <span className="text-slate-600 dark:text-slate-400 font-medium truncate mr-2">{s.service_name}</span>
-                        <span className="font-bold text-slate-800 dark:text-slate-200 flex-shrink-0">₹{s.fee}</span>
+                    {selectedServices.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-[11px] md:text-[12px] font-semibold text-slate-500 uppercase tracking-wider mt-2">Extra Services</p>
+                        {selectedServices.map(s => (
+                          <div key={s.id} className="flex justify-between items-center text-xs md:text-[14px] p-2.5 md:p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/30">
+                            <span className="text-slate-700 dark:text-slate-300 font-medium truncate mr-2">{s.service_name}</span>
+                            <span className="font-bold text-blue-700 dark:text-blue-300 flex-shrink-0">₹{s.fee}</span>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
                   </div>
 
                   <div className="p-3 md:p-4 rounded-xl bg-primary/5 border border-primary/20 flex justify-between items-center">

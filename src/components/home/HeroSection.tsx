@@ -131,7 +131,7 @@ export function HeroSection() {
   }, [specialty]);
 
   return (
-    <section className="relative bg-slate-50 dark:bg-background pt-16 pb-10 md:pt-20 md:pb-16 min-h-[460px] md:min-h-[580px] overflow-hidden">
+    <section className="relative bg-slate-50 dark:bg-background pt-16 pb-10 md:pt-20 md:pb-16 min-h-[460px] md:min-h-[580px]" style={{ overflow: 'visible' }}>
       {/* Animated gradient background */}
       <div className="absolute inset-0 top-0 w-full h-[600px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-slate-50 to-slate-50 dark:from-primary/10 dark:via-background dark:to-background pointer-events-none animate-gradient"></div>
       
@@ -139,7 +139,7 @@ export function HeroSection() {
       <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-float-slow pointer-events-none"></div>
       <div className="absolute top-40 right-10 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl animate-float-slower pointer-events-none"></div>
 
-      <div className="container relative z-10">
+      <div className="container relative z-[50]">
         <div className="max-w-4xl mx-auto text-center">
           {/* Improved trust strip with check icons */}
           <div className="inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-5 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm text-slate-700 dark:text-slate-300 text-[11px] sm:text-[12px] font-bold tracking-wide mb-6 animate-fade-in cursor-default">
@@ -175,12 +175,13 @@ export function HeroSection() {
           <form
             onSubmit={handleSearch}
             aria-label="Search for clinics"
-            className="flex flex-col md:flex-row items-center max-w-[700px] mx-auto bg-white dark:bg-slate-800 rounded-2xl md:rounded-full p-2 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_30px_-10px_rgba(0,0,0,0.3)] border border-slate-100 dark:border-slate-700 animate-in slide-in-from-bottom-6 duration-700 delay-300 fill-mode-both relative hover:shadow-[0_12px_40px_-10px_rgba(0,0,0,0.15)] dark:hover:shadow-[0_12px_40px_-10px_rgba(0,0,0,0.4)] transition-all duration-300 gap-2 md:gap-0 group"
+            className="flex flex-col md:flex-row items-center max-w-[700px] mx-auto bg-white dark:bg-slate-800 rounded-2xl md:rounded-full p-2 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_30px_-10px_rgba(0,0,0,0.3)] border border-slate-100 dark:border-slate-700 animate-in slide-in-from-bottom-6 duration-700 delay-300 fill-mode-both hover:shadow-[0_12px_40px_-10px_rgba(0,0,0,0.15)] dark:hover:shadow-[0_12px_40px_-10px_rgba(0,0,0,0.4)] transition-all duration-300 gap-2 md:gap-0 group"
+            style={{ overflow: 'visible' }}
           >
             {/* Location Input */}
             <div
               ref={locationRef}
-              className="relative flex-1 w-full md:border-r border-slate-100 dark:border-slate-700 flex items-center pr-4 rounded-xl md:rounded-none bg-slate-50 dark:bg-slate-900 md:bg-transparent md:dark:bg-transparent"
+              className="relative flex-1 w-full md:border-r border-slate-100 dark:border-slate-700 flex items-center pr-4 rounded-xl md:rounded-none bg-slate-50 dark:bg-slate-900 md:bg-transparent md:dark:bg-transparent overflow-visible"
             >
               <div className="pl-6 pr-2 py-4 flex items-center justify-center">
                 {isLoadingLocation ? (
@@ -206,37 +207,39 @@ export function HeroSection() {
               />
               {/* Location Dropdown */}
               {showLocationDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 max-h-60 overflow-y-auto custom-scrollbar z-[9999] py-2">
-                  <div
-                    className="flex items-center gap-2 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer text-primary text-sm font-medium border-b border-slate-50 dark:border-slate-700"
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => {
-                      setGeolocationRequested(false);
-                      handleGeolocation();
-                    }}
-                  >
-                    <Navigation className="h-4 w-4 shrink-0" />
-                    Use my current location
-                  </div>
-                  {filteredCities.length > 0 ? (
-                    filteredCities.map((city) => (
-                      <div
-                        key={city}
-                        className="px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer text-slate-700 dark:text-slate-200 text-sm font-medium transition-colors"
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => {
-                          setLocation(city);
-                          setShowLocationDropdown(false);
-                        }}
-                      >
-                        {city}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="px-4 py-3 text-sm text-slate-400 dark:text-slate-500">
-                      {location.length > 0 ? "That's okay — just type your neighbourhood." : 'Type your area or neighbourhood'}
+                <div className="absolute top-full left-0 right-0 mt-2 rounded-xl shadow-2xl max-h-60 overflow-hidden z-[1000]">
+                  <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-y-auto custom-scrollbar max-h-60 py-2">
+                    <div
+                      className="flex items-center gap-2 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer text-primary text-sm font-medium border-b border-slate-100 dark:border-slate-700"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        setGeolocationRequested(false);
+                        handleGeolocation();
+                      }}
+                    >
+                      <Navigation className="h-4 w-4 shrink-0" />
+                      Use my current location
                     </div>
-                  )}
+                    {filteredCities.length > 0 ? (
+                      filteredCities.map((city) => (
+                        <div
+                          key={city}
+                          className="px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer text-slate-700 dark:text-slate-200 text-sm font-medium transition-colors"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => {
+                            setLocation(city);
+                            setShowLocationDropdown(false);
+                          }}
+                        >
+                          {city}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="px-4 py-3 text-sm text-slate-400 dark:text-slate-500">
+                        {location.length > 0 ? "That's okay — just type your neighbourhood." : 'Type your area or neighbourhood'}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -244,7 +247,7 @@ export function HeroSection() {
             {/* Specialty Input */}
             <div
               ref={specialtyRef}
-              className="relative flex-1 w-full flex items-center pr-4 rounded-xl md:rounded-none bg-slate-50 dark:bg-slate-900 md:bg-transparent md:dark:bg-transparent"
+              className="relative flex-1 w-full flex items-center pr-4 rounded-xl md:rounded-none bg-slate-50 dark:bg-slate-900 md:bg-transparent md:dark:bg-transparent overflow-visible"
             >
               <div className="pl-6 pr-2 py-4 flex items-center justify-center">
                 <Stethoscope className="h-5 w-5 text-slate-400" />
@@ -269,31 +272,33 @@ export function HeroSection() {
               />
               {/* Specialty Dropdown */}
               {showSpecialtyDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 max-h-60 overflow-y-auto custom-scrollbar z-[9999] py-2">
-                  {filteredSpecialties.length > 0 ? (
-                    filteredSpecialties.map((spec) => {
-                      const Icon = getSpecialtyIcon(spec);
-                      return (
-                        <div
-                          key={spec}
-                          className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer text-slate-700 dark:text-slate-200 text-sm font-medium transition-colors"
-                          onMouseDown={(e) => e.preventDefault()}
-                          onClick={() => {
-                            setSpecialty(spec);
-                            setShowSpecialtyDropdown(false);
-                            handleSearch(undefined, spec);
-                          }}
-                        >
-                          <Icon className="w-4 h-4 text-primary opacity-70 shrink-0" />
-                          {spec}
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <div className="px-4 py-3 text-sm text-slate-400 dark:text-slate-500">
-                      No specialties found.
-                    </div>
-                  )}
+                <div className="absolute top-full left-0 right-0 mt-2 rounded-xl shadow-2xl max-h-60 overflow-hidden z-[1000]">
+                  <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-y-auto custom-scrollbar max-h-60 py-2">
+                    {filteredSpecialties.length > 0 ? (
+                      filteredSpecialties.map((spec) => {
+                        const Icon = getSpecialtyIcon(spec);
+                        return (
+                          <div
+                            key={spec}
+                            className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer text-slate-700 dark:text-slate-200 text-sm font-medium transition-colors"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                              setSpecialty(spec);
+                              setShowSpecialtyDropdown(false);
+                              handleSearch(undefined, spec);
+                            }}
+                          >
+                            <Icon className="w-4 h-4 text-primary opacity-70 shrink-0" />
+                            {spec}
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="px-4 py-3 text-sm text-slate-400 dark:text-slate-500">
+                        No specialties found.
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

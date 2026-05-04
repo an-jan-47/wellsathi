@@ -11,6 +11,15 @@ interface Props {
 export function ClinicDoctorsGrid({ doctors, onSelectDoctor }: Props) {
   const [profileDoctor, setProfileDoctor] = useState<Doctor | null>(null);
 
+  const handleBookDoctor = (doctorId: string) => {
+    onSelectDoctor(doctorId);
+    // Simple scroll to top
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
+
   if (doctors.length === 0) return null;
 
   return (
@@ -24,6 +33,7 @@ export function ClinicDoctorsGrid({ doctors, onSelectDoctor }: Props) {
             key={doctor.id}
             doctor={doctor}
             onViewProfile={() => setProfileDoctor(doctor)}
+            onBook={() => handleBookDoctor(doctor.id)}
           />
         ))}
       </div>
@@ -35,9 +45,8 @@ export function ClinicDoctorsGrid({ doctors, onSelectDoctor }: Props) {
           open={!!profileDoctor}
           onOpenChange={(open) => { if (!open) setProfileDoctor(null); }}
           onBook={() => {
-            onSelectDoctor(profileDoctor.id);
+            handleBookDoctor(profileDoctor.id);
             setProfileDoctor(null);
-            document.querySelector('[data-booking-widget]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }}
         />
       )}
@@ -46,18 +55,18 @@ export function ClinicDoctorsGrid({ doctors, onSelectDoctor }: Props) {
 }
 
 /* ─── Doctor Card ─── */
-function DoctorCard({ doctor, onViewProfile }: { doctor: Doctor; onViewProfile: () => void }) {
+function DoctorCard({ doctor, onViewProfile, onBook }: { doctor: Doctor; onViewProfile: () => void; onBook: () => void }) {
   const bio = doctor.bio || `Specializing in ${doctor.specialization.toLowerCase()} with a patient-centered approach.`;
   const shortBio = bio.length > 70 ? bio.slice(0, 70).trimEnd() + '…' : bio;
   const showReadMore = bio.length > 70;
 
   return (
-    <button
-      onClick={onViewProfile}
-      className="bg-white border border-slate-200/80 rounded-[14px] sm:rounded-[16px] overflow-hidden hover:shadow-lg hover:border-slate-300 transition-all group text-left w-full flex flex-col cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-    >
+    <div className="bg-white border border-slate-200/80 rounded-[14px] sm:rounded-[16px] overflow-hidden hover:shadow-lg hover:border-slate-300 transition-all group text-left w-full flex flex-col">
       {/* Avatar banner — 10% taller */}
-      <div className="h-[88px] sm:h-[110px] bg-gradient-to-br from-primary/15 to-primary/5 relative flex items-end overflow-hidden">
+      <button
+        onClick={onViewProfile}
+        className="h-[88px] sm:h-[110px] bg-gradient-to-br from-primary/15 to-primary/5 relative flex items-end overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 w-full"
+      >
         {doctor.image_url ? (
           <img
             src={doctor.image_url}
@@ -78,10 +87,13 @@ function DoctorCard({ doctor, onViewProfile }: { doctor: Doctor; onViewProfile: 
             {doctor.specialization}
           </span>
         </div>
-      </div>
+      </button>
 
       {/* Info */}
-      <div className="p-3.5 sm:p-4 flex-1 flex flex-col">
+      <button
+        onClick={onViewProfile}
+        className="p-3.5 sm:p-4 flex-1 flex flex-col cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 w-full text-left"
+      >
         {/* Name row + Experience */}
         <div className="flex items-start justify-between gap-1.5 mb-1">
           <h4 className="font-black text-[13px] sm:text-[14px] text-slate-900 group-hover:text-primary transition-colors leading-tight line-clamp-1">
@@ -106,8 +118,21 @@ function DoctorCard({ doctor, onViewProfile }: { doctor: Doctor; onViewProfile: 
             Read more →
           </span>
         )}
+      </button>
+
+      {/* Book Button */}
+      <div className="px-3 pb-3 sm:px-4 sm:pb-4">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onBook();
+          }}
+          className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-[12px] transition-all shadow-md shadow-primary/20 active:scale-[0.98]"
+        >
+          Book with Dr. {doctor.name.split(' ')[0]}
+        </button>
       </div>
-    </button>
+    </div>
   );
 }
 

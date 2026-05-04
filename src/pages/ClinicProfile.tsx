@@ -5,6 +5,7 @@ import { Layout } from '@/components/layout/Layout';
 import { useAuthStore } from '@/stores/authStore';
 import { useClinicProfile } from '@/hooks/queries/useClinics';
 import { useAllSlots } from '@/hooks/queries/useSlots';
+import { useSlotAvailability, formatAvailability } from '@/hooks/useSlotAvailability';
 import {
   Loader2, Video, CheckCircle2, MapPin, Phone, Clock, Users, Award, Shield,
   Calendar, ChevronDown, Star, Navigation,
@@ -55,6 +56,47 @@ export default function ClinicProfile() {
 
   const { data: allSlots = [] } = useAllSlots(selectedDoctorId, selectedDate);
   const services = profileData?.services ?? [];
+
+  // Fetch slots for all visible dates (first 7 days)
+  const date1 = format(addDays(new Date(), 0), 'yyyy-MM-dd');
+  const date2 = format(addDays(new Date(), 1), 'yyyy-MM-dd');
+  const date3 = format(addDays(new Date(), 2), 'yyyy-MM-dd');
+  const date4 = format(addDays(new Date(), 3), 'yyyy-MM-dd');
+  const date5 = format(addDays(new Date(), 4), 'yyyy-MM-dd');
+  const date6 = format(addDays(new Date(), 5), 'yyyy-MM-dd');
+  const date7 = format(addDays(new Date(), 6), 'yyyy-MM-dd');
+
+  const { data: slots1 = [] } = useAllSlots(selectedDoctorId, date1);
+  const { data: slots2 = [] } = useAllSlots(selectedDoctorId, date2);
+  const { data: slots3 = [] } = useAllSlots(selectedDoctorId, date3);
+  const { data: slots4 = [] } = useAllSlots(selectedDoctorId, date4);
+  const { data: slots5 = [] } = useAllSlots(selectedDoctorId, date5);
+  const { data: slots6 = [] } = useAllSlots(selectedDoctorId, date6);
+  const { data: slots7 = [] } = useAllSlots(selectedDoctorId, date7);
+
+  // Create a map of date to available slot count
+  const slotsByDate = useMemo(() => {
+    const map: Record<string, number> = {};
+    const currentTimeStr = format(new Date(), 'HH:mm:ss');
+    
+    [
+      { date: date1, slots: slots1 },
+      { date: date2, slots: slots2 },
+      { date: date3, slots: slots3 },
+      { date: date4, slots: slots4 },
+      { date: date5, slots: slots5 },
+      { date: date6, slots: slots6 },
+      { date: date7, slots: slots7 },
+    ].forEach(({ date, slots }) => {
+      const isToday = isTodayFn(parseISO(date));
+      const availableSlots = isToday 
+        ? slots.filter(s => s.is_available && s.start_time > currentTimeStr)
+        : slots.filter(s => s.is_available);
+      map[date] = availableSlots.length;
+    });
+    
+    return map;
+  }, [date1, date2, date3, date4, date5, date6, date7, slots1, slots2, slots3, slots4, slots5, slots6, slots7]);
 
   const dateOptions: DateOption[] = Array.from({ length: 14 }, (_, i) => {
     const date = addDays(new Date(), i);
@@ -153,6 +195,7 @@ export default function ClinicProfile() {
                   selectedSlot={selectedSlot}
                   dateOptions={dateOptions}
                   filteredSlots={filteredSlots}
+                  slotsByDate={slotsByDate}
                   onDoctorChange={setSelectedDoctorId}
                   onDateChange={setSelectedDate}
                   onSlotChange={setSelectedSlot}
@@ -253,6 +296,7 @@ export default function ClinicProfile() {
                   selectedSlot={selectedSlot}
                   dateOptions={dateOptions}
                   filteredSlots={filteredSlots}
+                  slotsByDate={slotsByDate}
                   onDoctorChange={setSelectedDoctorId}
                   onDateChange={setSelectedDate}
                   onSlotChange={setSelectedSlot}
@@ -343,7 +387,7 @@ function LocationCard({ clinic }: { clinic: Clinic }) {
 /* ─── Booking Card ─── */
 function BookingCard({
   clinic, doctors, selectedDoctorId, selectedDate, selectedSlot,
-  dateOptions, filteredSlots,
+  dateOptions, filteredSlots, slotsByDate,
   onDoctorChange, onDateChange, onSlotChange, onBooking, hasNoSlotsForDay
 }: {
   clinic: Clinic;
@@ -353,6 +397,7 @@ function BookingCard({
   selectedSlot: string;
   dateOptions: DateOption[];
   filteredSlots: TimeSlot[];
+  slotsByDate?: Record<string, number>;
   onDoctorChange: (id: string) => void;
   onDateChange: (d: string) => void;
   onSlotChange: (t: string) => void;
@@ -364,7 +409,10 @@ function BookingCard({
   return (
     <div className="bg-white rounded-[20px] border border-slate-200/80 shadow-[0_8px_30px_-8px_rgba(0,0,0,0.06)] overflow-hidden">
       <div className="px-5 pt-7 pb-5 lg:py-5">
-        <h3 className="text-[18px] font-black text-slate-900 mb-0.5">Book an Appointment</h3>
+        <div className="mb-5">
+          <h3 className="text-[20px] md:text-[22px] font-black text-slate-900 mb-1 tracking-tight">Book Appointment</h3>
+          <p className="text-[13px] text-slate-500 font-medium">Choose your doctor, date and time</p>
+        </div>
 
         {/* Doctor Selector */}
         <div className="mb-5">
@@ -396,23 +444,40 @@ function BookingCard({
         {/* Date Bubbles */}
         <div className="mb-5">
           <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Preferred Date</label>
-          <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+          <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 pt-[14px]">
             {dateOptions.slice(0, 7).map((option) => {
               const isSelected = selectedDate === option.value;
+              // Get availability count from slotsByDate map
+              const availableCount = slotsByDate?.[option.value] ?? null;
+              
               return (
-                <button
-                  key={option.value}
-                  onClick={() => { onDateChange(option.value); onSlotChange(''); }}
-                  className={`flex flex-col items-center justify-center shrink-0 w-[56px] h-[66px] rounded-[14px] transition-all border-2 ${
-                    isSelected
-                      ? 'bg-primary border-primary text-white shadow-lg shadow-primary/25'
-                      : 'bg-white border-slate-100 text-slate-600 hover:border-primary/40'
-                  }`}
-                >
-                  <span className={`text-[9px] font-extrabold uppercase ${isSelected ? 'text-white/80' : 'text-slate-400'}`}>{option.dayName}</span>
-                  <span className="text-[18px] font-black leading-tight">{option.dayNum}</span>
-                  <span className={`text-[8px] font-bold uppercase ${isSelected ? 'text-white/70' : 'text-slate-400'}`}>{option.month}</span>
-                </button>
+                <div key={option.value} className="flex flex-col items-center shrink-0 relative">
+                  {/* Availability text above the card - absolute positioned */}
+                  <div className={`absolute -top-[14px] left-1/2 -translate-x-1/2 text-[9px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap ${
+                    availableCount !== null
+                      ? availableCount === 0 
+                        ? 'text-red-600 bg-red-50' 
+                        : 'text-emerald-600 bg-emerald-50'
+                      : 'invisible'
+                  }`}>
+                    {availableCount !== null && (
+                      availableCount === 0 ? 'No slots' : `${availableCount} left`
+                    )}
+                  </div>
+                  <button
+                    onClick={() => { onDateChange(option.value); onSlotChange(''); }}
+                    className={`flex flex-col items-center justify-center w-[56px] h-[66px] rounded-[14px] transition-all border-2 ${
+                      isSelected
+                        ? 'bg-primary border-primary text-white shadow-lg shadow-primary/25'
+                        : 'bg-white border-slate-100 text-slate-600 hover:border-primary/40'
+                    }`}
+                    style={{ minWidth: '56px', minHeight: '44px' }}
+                  >
+                    <span className={`text-[9px] font-extrabold uppercase ${isSelected ? 'text-white/80' : 'text-slate-400'}`}>{option.dayName}</span>
+                    <span className="text-[18px] font-black leading-tight">{option.dayNum}</span>
+                    <span className={`text-[8px] font-bold uppercase ${isSelected ? 'text-white/70' : 'text-slate-400'}`}>{option.month}</span>
+                  </button>
+                </div>
               );
             })}
           </div>

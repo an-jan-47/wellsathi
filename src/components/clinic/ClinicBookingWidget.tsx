@@ -1,7 +1,8 @@
-import { Calendar, ChevronDown, Star, MapPin, Phone, Clock } from 'lucide-react';
+import { Calendar, ChevronDown, Star, MapPin, Phone } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import type { Doctor, Clinic, TimeSlot } from '@/types';
 import { ClinicMap } from './ClinicMap';
+import { calculateDuration, formatDuration } from '@/lib/calendarUtils';
 
 interface DateOption {
   value: string;
@@ -40,8 +41,10 @@ export function ClinicBookingWidget({
         {/* ── Booking Engine ── */}
         <div className="bg-white rounded-[20px] border border-slate-200/80 shadow-[0_8px_30px_-8px_rgba(0,0,0,0.06)] overflow-hidden">
           <div className="px-5 py-5">
-            <h3 className="text-[18px] font-black text-slate-900 mb-0.5">Book an Appointment</h3>
-            <p className="text-[12px] text-slate-500 font-medium mb-5">Select your specialist, date and time.</p>
+            <div className="mb-5">
+              <h3 className="text-[20px] md:text-[22px] font-black text-slate-900 mb-1 tracking-tight">Book Appointment</h3>
+              <p className="text-[13px] text-slate-500 font-medium">Choose your doctor, date and time</p>
+            </div>
 
             {/* Doctor Selector */}
             <div className="mb-5">
@@ -90,30 +93,47 @@ export function ClinicBookingWidget({
             {/* Date Selector */}
             <div className="mb-5">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Preferred Date</label>
-              <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 custom-scrollbar">
+              <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 custom-scrollbar pt-[14px]">
                 {dateOptions.slice(0, 7).map((option) => {
                   const isSelected = selectedDate === option.value;
+                  // Calculate availability for the selected date
+                  const availableCount = isSelected ? filteredSlots.filter(s => s.is_available).length : null;
+                  
                   return (
-                    <button
-                      key={option.value}
-                      onClick={() => {
-                        onDateChange(option.value);
-                        onSlotChange('');
-                      }}
-                      className={`flex flex-col items-center justify-center shrink-0 w-[56px] h-[66px] rounded-[14px] transition-all border-2 ${
-                        isSelected
-                          ? 'bg-primary border-primary text-white shadow-lg shadow-primary/25'
-                          : 'bg-white border-slate-100 text-slate-600 hover:border-primary/40'
-                      }`}
-                    >
-                      <span className={`text-[9px] font-extrabold uppercase ${isSelected ? 'text-white/80' : 'text-slate-400'}`}>
-                        {option.dayName}
-                      </span>
-                      <span className="text-[18px] font-black leading-tight">{option.dayNum}</span>
-                      <span className={`text-[8px] font-bold uppercase ${isSelected ? 'text-white/70' : 'text-slate-400'}`}>
-                        {option.month}
-                      </span>
-                    </button>
+                    <div key={option.value} className="flex flex-col items-center shrink-0 relative">
+                      {/* Availability text above the card - absolute positioned */}
+                      <div className={`absolute -top-[14px] left-1/2 -translate-x-1/2 text-[9px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap ${
+                        availableCount !== null
+                          ? availableCount === 0 
+                            ? 'text-red-600 bg-red-50' 
+                            : 'text-emerald-600 bg-emerald-50'
+                          : 'invisible'
+                      }`}>
+                        {availableCount !== null && (
+                          availableCount === 0 ? 'No slots' : `${availableCount} left`
+                        )}
+                      </div>
+                      <button
+                        onClick={() => {
+                          onDateChange(option.value);
+                          onSlotChange('');
+                        }}
+                        className={`flex flex-col items-center justify-center w-[56px] h-[66px] rounded-[14px] transition-all border-2 ${
+                          isSelected
+                            ? 'bg-primary border-primary text-white shadow-lg shadow-primary/25'
+                            : 'bg-white border-slate-100 text-slate-600 hover:border-primary/40'
+                        }`}
+                        style={{ minWidth: '56px', minHeight: '44px' }}
+                      >
+                        <span className={`text-[9px] font-extrabold uppercase ${isSelected ? 'text-white/80' : 'text-slate-400'}`}>
+                          {option.dayName}
+                        </span>
+                        <span className="text-[18px] font-black leading-tight">{option.dayNum}</span>
+                        <span className={`text-[8px] font-bold uppercase ${isSelected ? 'text-white/70' : 'text-slate-400'}`}>
+                          {option.month}
+                        </span>
+                      </button>
+                    </div>
                   );
                 })}
               </div>
@@ -123,22 +143,30 @@ export function ClinicBookingWidget({
             <div className="mb-5">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Available Slots</label>
               {filteredSlots.length > 0 ? (
-                <div className="grid grid-cols-3 sm:grid-cols-2 gap-2 max-h-[180px] overflow-y-auto custom-scrollbar pr-0.5">
+                <div className="grid grid-cols-2 gap-2 max-h-[180px] overflow-y-auto custom-scrollbar pr-0.5">
                   {filteredSlots.map((slot) => {
                     const isSelected = selectedSlot === slot.start_time;
                     if (!slot.is_available) return null;
+                    const duration = calculateDuration(slot.start_time, slot.end_time);
+                    const durationText = formatDuration(duration);
+                    
                     return (
                       <button
                         key={slot.start_time}
                         onClick={() => onSlotChange(slot.start_time)}
-                        className={`py-2 px-1 min-h-[44px] rounded-xl text-[12px] font-bold border-2 transition-all ${
+                        className={`py-2 px-2 min-h-[44px] rounded-xl text-[11px] font-bold border-2 transition-all flex flex-col items-center justify-center ${
                           isSelected
                             ? 'bg-primary border-primary text-white shadow-md shadow-primary/20'
                             : 'bg-white border-slate-200 text-slate-700 hover:border-primary/40 hover:text-primary'
                         }`}
                       >
-                        {slot.start_time.slice(0, 5)}{' '}
-                        {parseInt(slot.start_time) >= 12 ? 'PM' : 'AM'}
+                        <span className="text-[12px]">
+                          {slot.start_time.slice(0, 5)}{' '}
+                          {parseInt(slot.start_time) >= 12 ? 'PM' : 'AM'}
+                        </span>
+                        <span className={`text-[9px] font-medium mt-0.5 ${isSelected ? 'text-white/80' : 'text-slate-500'}`}>
+                          {durationText}
+                        </span>
                       </button>
                     );
                   })}
